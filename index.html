@@ -1,0 +1,2226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국가연구개발성과 도우미</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  /* 한국연구재단 홈페이지에서 추출한 색 (2026-07 기준) */
+  --bg: #f4f7fb; --surface: #fff; --surface2: #eef2f8;
+  --border: #e3e8f1; --border2: #c6cfe0;
+  --tp: #212529; --ts: #55606e; --tm: #8a93a2;
+  --accent: #4c68bb; --accent-l: #eef1f9; --accent-m: #b9c5e3;
+  --accent-d: #4a5ea3;
+  --teal: #61a1b0; --teal-l: #ebf4f6; --teal-m: #c3dfe5;
+  --success: #3f8a86; --success-bg: #eef6f7; --success-border: #c3dfe5;
+  --error: #d0425e; --error-bg: #fbf0f3;
+  --warn-bg: #f7f9fc; --warn-border: #dbe3ef;
+  --navy: #1c264b; --navy2: #2a3766;
+  --r: 12px; --r2: 8px;
+  --sh: 0 1px 3px rgba(28,38,75,0.06), 0 0 0 1px rgba(28,38,75,0.04);
+  --focus: 0 0 0 3px rgba(76,104,187,0.28);
+}
+body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif; background: var(--bg); color: var(--tp); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+
+/* ── 헤더 ── */
+header { background: #ffffff; border-bottom: 1px solid var(--border); padding: 0 24px; position: sticky; top: 0; z-index: 100; }
+.header-inner { max-width: 1000px; margin: 0 auto; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.logo { display: flex; align-items: center; text-decoration: none; }
+.logo-icon { width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+.logo-icon svg { width: 14px; height: 14px; fill: #fff; }
+nav { display: flex; gap: 2px; }
+.nav-tab { padding: 6px 14px; border-radius: var(--r2); font-size: 13px; font-weight: 500; color: var(--ts); background: none; border: none; cursor: pointer; transition: background 0.15s, color 0.15s; }
+.nav-tab:hover { background: var(--surface2); color: var(--tp); }
+.nav-tab.active { background: var(--accent-l); color: var(--accent); }
+
+/* ── 메인 ── */
+main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── 검색 박스 ── */
+.search-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); margin-bottom: 20px; overflow: hidden; }
+.search-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface2); }
+.stab { flex: 1; max-width: 160px; padding: 11px 16px; font-size: 13px; font-weight: 500; color: var(--ts); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+.stab svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.stab:hover { color: var(--tp); }
+.stab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--surface); }
+.search-body { padding: 20px; }
+.input-row { display: flex; gap: 8px; }
+.s-input { flex: 1; height: 44px; padding: 0 14px; border: 1px solid var(--border2); border-radius: var(--r2); font-size: 14px; font-family: inherit; color: var(--tp); background: var(--surface); outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.s-input.mono { font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+.s-input::placeholder { color: var(--tm); font-size: 13px; font-family: inherit; }
+.s-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(76,104,187,0.14); }
+.s-btn { height: 44px; padding: 0 20px; background: var(--accent); color: #fff; border: none; border-radius: var(--r2); font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: opacity 0.15s; }
+.s-btn:hover { opacity: 0.88; }
+.s-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.s-btn svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.hint-row { margin-top: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hint-l { font-size: 12px; color: var(--tm); }
+.ex-chip { font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 12px; color: var(--ts); background: var(--surface2); cursor: pointer; transition: all 0.12s; }
+.ex-chip:hover { border-color: var(--accent-m); color: var(--accent); background: var(--accent-l); }
+
+/* ── 검색 결과 목록 ── */
+.search-results { margin-bottom: 16px; }
+.sr-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.sr-title { font-size: 13px; font-weight: 600; color: var(--ts); }
+.sr-back { font-size: 12px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 0; }
+.sr-list { display: flex; flex-direction: column; gap: 8px; }
+.sr-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+.sr-item:hover { border-color: var(--accent-m); box-shadow: 0 0 0 3px rgba(76,104,187,0.10); }
+.sr-item-title { font-size: 14px; font-weight: 500; color: var(--tp); line-height: 1.5; margin-bottom: 5px; }
+.sr-item-meta { font-size: 12px; color: var(--tm); display: flex; gap: 12px; flex-wrap: wrap; }
+.sr-item-meta span { display: flex; align-items: center; gap: 3px; }
+
+/* ── 결과 카드 ── */
+#result-area { }
+.result-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); overflow: hidden; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+
+.rc-header { background: var(--success-bg); border-bottom: 1px solid var(--success-border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
+.rc-header-left { display: flex; align-items: center; gap: 7px; }
+.rc-header-left svg { width: 16px; height: 16px; fill: none; stroke: var(--success); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.rc-header-left span { font-size: 12px; font-weight: 600; color: var(--success); }
+.copy-btn { font-size: 12px; color: var(--ts); background: var(--surface); border: 1px solid var(--border2); border-radius: var(--r2); padding: 5px 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.12s; }
+.copy-btn:hover { background: var(--accent-l); color: var(--accent); border-color: var(--accent-m); }
+.copy-btn svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* 논문 제목 영역 */
+.rc-title-area { padding: 18px 20px 16px; border-bottom: 1px solid var(--border); }
+.rc-title { font-size: 16px; font-weight: 600; color: var(--tp); line-height: 1.6; }
+.rc-doi { margin-top: 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); text-decoration: none; }
+.rc-doi:hover { text-decoration: underline; }
+
+/* 통계 배너 */
+.stat-banner { display: flex; gap: 0; border-bottom: 1px solid var(--border); }
+.stat-cell { flex: 1; padding: 14px 20px; border-right: 1px solid var(--border); }
+.stat-cell:last-child { border-right: none; }
+.stat-n { font-size: 22px; font-weight: 600; color: var(--accent); line-height: 1; }
+.stat-l { font-size: 11px; color: var(--tm); font-weight: 500; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* 그리드 섹션 */
+.rc-body { padding: 0; }
+.rc-section { border-bottom: 1px solid var(--border); }
+.rc-section:last-child { border-bottom: none; }
+.rc-section-head { padding: 10px 20px; background: var(--surface2); font-size: 11px; font-weight: 600; color: var(--tm); text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 1px solid var(--border); }
+.rc-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.rc-cell { padding: 11px 20px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+.rc-cell:nth-child(2n) { border-right: none; }
+.rc-cell.full { grid-column: 1 / -1; border-right: none; }
+.rc-cell:last-child, .rc-cell:nth-last-child(2):not(.full) { border-bottom: none; }
+.rc-cell:last-child.full { border-bottom: none; }
+.cell-l { font-size: 11px; font-weight: 600; color: var(--tm); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+.cell-v { font-size: 13px; color: var(--tp); word-break: break-word; }
+.cell-v.mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); }
+.cell-v.muted { color: var(--tm); font-style: italic; }
+
+/* 저자 */
+.author-list { display: flex; flex-direction: column; gap: 7px; padding: 12px 20px; }
+.author-item { display: flex; align-items: flex-start; gap: 8px; }
+.role-chip { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+.role-first { background: var(--accent-l); color: var(--accent); }
+.role-co    { background: var(--surface2); color: var(--ts); }
+.role-corr  { background: var(--warn-bg); color: var(--error); }
+.author-info { display: flex; flex-direction: column; gap: 1px; }
+.author-name { font-size: 13px; font-weight: 500; color: var(--tp); }
+.author-affil { font-size: 12px; color: var(--tm); }
+
+/* 뱃지 */
+.badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+.b-intl { background: var(--success-bg); color: var(--success); }
+.b-dom  { background: var(--surface2); color: var(--ts); }
+.b-vol  { background: var(--accent-l); color: var(--accent); }
+
+/* ISSN */
+.issn-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+.issn-item { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: var(--surface2); padding: 2px 8px; border-radius: 4px; color: var(--ts); }
+
+/* 키워드 */
+.kw-wrap { display: flex; flex-wrap: wrap; gap: 5px; padding: 12px 20px; }
+.kw { font-size: 12px; padding: 3px 10px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border); color: var(--ts); }
+
+/* 초록 */
+.abstract-area { padding: 12px 20px; }
+.abstract-text { font-size: 13px; color: var(--ts); line-height: 1.75; }
+.abstract-text.clamped { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.abstract-toggle { font-size: 12px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px 0 0; display: block; }
+
+/* 로딩/에러 */
+.loading-wrap { padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--tm); font-size: 13px; }
+.spinner { width: 26px; height: 26px; border: 2.5px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-card { background: var(--error-bg); border: 1px solid #eec6ce; border-radius: var(--r); padding: 14px 18px; display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.2s ease; }
+.error-card svg { width: 17px; height: 17px; fill: none; stroke: var(--error); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; margin-top: 1px; }
+.error-card p { font-size: 13px; color: var(--error); line-height: 1.55; }
+
+/* FAQ */
+.faq-empty { background: var(--surface); border: 1px dashed var(--border2); border-radius: var(--r); padding: 60px 32px; text-align: center; color: var(--tm); }
+.faq-empty svg { width: 38px; height: 38px; margin: 0 auto 14px; display: block; fill: none; stroke: var(--border2); stroke-width: 1.5; }
+.faq-empty p { font-size: 14px; }
+
+@media (max-width: 640px) {
+  main { padding: 20px 14px 60px; }
+  .input-row { flex-direction: column; }
+  .s-btn { width: 100%; justify-content: center; }
+  .rc-grid { grid-template-columns: 1fr; }
+  .rc-cell { border-right: none !important; }
+  .rc-cell:nth-last-child(2):not(.full) { border-bottom: 1px solid var(--border); }
+  .stat-banner { flex-wrap: wrap; }
+  .stat-cell { min-width: 120px; }
+}
+
+  /* ── 입력 전 확인사항 체크리스트 ── */
+  .check-card { background: var(--warn-bg); border: 1px solid var(--warn-border); border-left: 3px solid var(--error); border-radius: 0 var(--r) var(--r) 0; padding: 16px 18px; margin-bottom: 16px; }
+  .check-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .check-head svg { width: 17px; height: 17px; fill: none; stroke: var(--error); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .check-title { font-size: 13px; font-weight: 700; color: var(--error); }
+  .check-desc { font-size: 13px; color: var(--ts); line-height: 1.65; margin-bottom: 10px; }
+  .check-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+  .check-list li { position: relative; padding-left: 22px; font-size: 12.5px; color: var(--tp); line-height: 1.55; }
+  .check-list li::before { content: "□"; position: absolute; left: 0; top: 0; color: var(--error); font-weight: 700; }
+  .check-note { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--warn-border); font-size: 12px; color: var(--error); line-height: 1.6; }
+  @media (max-width: 640px) {
+    .check-list { grid-template-columns: 1fr; }
+  }
+
+  /* ── 상담 게시판 ── */
+  .cat-btn { padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:500;color:var(--ts);background:var(--surface);cursor:pointer;transition:all 0.12s;font-family:inherit; }
+  .cat-btn:hover { border-color:var(--accent-m);color:var(--accent); }
+  .cat-btn.active { background:var(--accent);border-color:var(--accent);color:#fff; }
+
+  .q-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s; }
+  .q-card:hover { border-color:var(--accent-m);box-shadow:0 0 0 3px rgba(76,104,187,0.10); }
+  .q-card-head { padding:14px 18px;display:flex;align-items:flex-start;gap:10px; }
+  .q-cat { font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--accent-l);color:var(--accent);white-space:nowrap;flex-shrink:0;margin-top:2px; }
+  .q-cat.answered { background:var(--success-bg);color:var(--success); }
+  .q-title { font-size:14px;font-weight:500;color:var(--tp);line-height:1.5;flex:1; }
+  .q-meta { font-size:11px;color:var(--tm);margin-top:4px;display:flex;gap:10px; }
+  .q-status { font-size:11px;font-weight:600;margin-left:auto;white-space:nowrap;padding-top:2px; }
+  .q-status.done { color:var(--success); }
+  .q-status.wait { color:var(--tm); }
+  .q-answer { padding:14px 18px;background:var(--success-bg);border-top:1px solid var(--success-border);font-size:13px;color:var(--tp);line-height:1.7;display:none; }
+  .q-answer-label { font-size:11px;font-weight:600;color:var(--success);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em; }
+  .q-card.open .q-answer { display:block; }
+  .board-empty { background:var(--surface);border:1px dashed var(--border2);border-radius:var(--r);padding:50px;text-align:center;color:var(--tm);font-size:14px; }
+
+  /* ── FAQ ── */
+  .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; margin-bottom: 8px; }
+  .faq-q { display: flex; align-items: flex-start; gap: 12px; padding: 16px 18px; cursor: pointer; transition: background 0.15s; user-select: none; }
+  .faq-q:hover { background: var(--accent-l); }
+  .faq-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--accent-l); color: var(--accent); white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+  .faq-question { flex: 1; font-size: 14px; font-weight: 500; color: var(--tp); line-height: 1.5; }
+  .faq-toggle { font-size: 18px; color: var(--tm); flex-shrink: 0; line-height: 1; margin-top: 1px; transition: transform 0.2s; }
+  .faq-answer { display: none; padding: 14px 18px 16px; font-size: 13px; color: var(--ts); line-height: 1.75; background: var(--surface2); border-top: 1px solid var(--border); }
+  .faq-item.open .faq-answer { display: block; }
+  .faq-item.open .faq-toggle { transform: rotate(45deg); }
+
+  /* ── AI 챗봇 ── */
+  .chat-msg { display: flex; gap: 8px; align-items: flex-end; }
+  .chat-msg.bot { justify-content: flex-start; }
+  .chat-msg.user { justify-content: flex-end; }
+  .chat-bubble { max-width: 78%; padding: 11px 15px; border-radius: 14px; font-size: 14px; line-height: 1.65; word-break: break-word; }
+  .chat-bubble.bot { background: var(--surface2); color: var(--tp); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+  .chat-bubble.user { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .chat-typing { display: flex; gap: 4px; padding: 4px 2px; align-items: center; }
+  .chat-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--tm); animation: chatbounce 1.2s infinite; }
+  .chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+  .chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes chatbounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+
+  /* ── 홈 카드 ── */
+  .home-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 22px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; gap: 8px; }
+  .home-card:hover { border-color: var(--accent-m); box-shadow: 0 4px 16px rgba(28,38,75,0.10); transform: translateY(-2px); transition: all 0.15s; }
+  .home-card-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .home-card-title { font-size: 15px; font-weight: 600; color: var(--tp); }
+  .home-card-desc { font-size: 13px; color: var(--ts); line-height: 1.6; flex: 1; }
+  .home-card-arrow { font-size: 12px; color: var(--accent); font-weight: 500; }
+
+  /* ── IRIS 바로가기 ── */
+  .iris-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 18px 20px; text-decoration: none; display: flex; flex-direction: column; gap: 6px; transition: all 0.15s; }
+  .iris-card:hover { border-color: var(--accent-m); box-shadow: 0 4px 12px rgba(28,38,75,0.10); transform: translateY(-2px); }
+  .iris-card-title { font-size: 14px; font-weight: 600; color: var(--accent); }
+  .iris-card-desc { font-size: 13px; color: var(--ts); line-height: 1.5; }
+
+  /* ── 공지사항 ── */
+
+
+  /* ── 칸별 복사 ── */
+  .cell-copy { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .cell-copy-btn { font-size: 10px; color: var(--tm); background: none; border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.12s; }
+  .cell-copy-btn:hover { color: var(--accent); border-color: var(--accent-m); background: var(--accent-l); }
+
+  /* ── 성과 인정 주의 배너 ── */
+  .warn-banner { padding: 12px 18px; background: var(--warn-bg); border-bottom: 1px solid var(--warn-border); display: flex; gap: 10px; align-items: flex-start; }
+  .warn-banner svg { width: 17px; height: 17px; fill: none; stroke: var(--error); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; margin-top: 1px; }
+  .warn-banner p { font-size: 13px; color: var(--error); line-height: 1.6; }
+  .warn-banner strong { font-weight: 600; }
+  .ok-banner { padding: 12px 18px; background: var(--success-bg); border-bottom: 1px solid var(--success-border); display: flex; gap: 10px; align-items: center; }
+  .ok-banner svg { width: 16px; height: 16px; fill: none; stroke: var(--success); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .ok-banner p { font-size: 13px; color: var(--success); font-weight: 500; }
+
+  /* ── 공지사항 아코디언 ── */
+  .notice-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; overflow: hidden; }
+  .notice-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; gap: 12px; transition: background 0.15s; }
+  .notice-head:hover { background: var(--surface2); }
+  .notice-head-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+  .notice-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--accent-l); color: var(--accent); white-space: nowrap; flex-shrink: 0; }
+  .notice-title { font-size: 14px; font-weight: 500; color: var(--tp); }
+  .notice-date { font-size: 12px; color: var(--tm); white-space: nowrap; flex-shrink: 0; }
+  .notice-toggle { font-size: 16px; color: var(--tm); flex-shrink: 0; transition: transform 0.2s; }
+  .notice-body { display: none; padding: 14px 18px 16px; border-top: 1px solid var(--border); background: var(--surface2); }
+  .notice-body p { font-size: 13px; color: var(--ts); line-height: 1.75; margin-bottom: 10px; }
+  .notice-attach { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--accent); text-decoration: none; padding: 6px 12px; border: 1px solid var(--accent-m); border-radius: var(--r2); background: var(--accent-l); }
+  .notice-attach:hover { background: var(--accent-m); }
+  .notice-attach svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .notice-item.open .notice-body { display: block; }
+  .notice-item.open .notice-toggle { transform: rotate(45deg); }
+
+  /* ── 특허 결과 ── */
+  .patent-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); margin-bottom: 12px; overflow: hidden; }
+  .patent-header { background: var(--teal-l); border-bottom: 1px solid var(--teal-m); padding: 12px 20px; display: flex; align-items: center; gap: 8px; }
+  .patent-header svg { width: 16px; height: 16px; fill: none; stroke: var(--teal); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .patent-header span { font-size: 12px; font-weight: 600; color: var(--teal); }
+  .patent-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--teal-l); color: var(--teal); font-weight: 600; margin-left: auto; }
+  .patent-title { font-size: 16px; font-weight: 600; color: var(--tp); padding: 16px 20px 8px; line-height: 1.5; }
+  .patent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 0 20px 16px; }
+  .patent-cell { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .patent-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .patent-cell-l { font-size: 11px; color: var(--tm); font-weight: 600; margin-bottom: 3px; }
+  .patent-cell-v { font-size: 13px; color: var(--tp); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .patent-full { grid-column: 1 / -1; }
+
+  /* ── 드롭다운 네비 ── */
+  .nav-group { position: relative; display: inline-block; }
+  .nav-group-btn { padding: 6px 14px; border-radius: var(--r2); font-size: 13px; font-weight: 500; color: var(--ts); background: none; border: none; cursor: pointer; transition: background 0.15s, color 0.15s; display: flex; align-items: center; gap: 4px; }
+  .nav-group-btn:hover, .nav-group-btn.active { background: var(--accent-l); color: var(--accent); }
+  .nav-group-btn svg { width: 12px; height: 12px; transition: transform 0.2s; }
+  .nav-group-btn.open svg { transform: rotate(180deg); }
+  .nav-dropdown { display: none; position: absolute; top: calc(100% + 6px); left: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: 0 8px 24px rgba(0,0,0,0.1); min-width: 160px; z-index: 200; overflow: hidden; }
+  .nav-group.open .nav-dropdown { display: block; }
+  .nav-dropdown-item { display: block; width: 100%; padding: 10px 16px; font-size: 13px; font-weight: 500; color: var(--ts); background: none; border: none; cursor: pointer; text-align: left; transition: background 0.12s; }
+  .nav-dropdown-item:hover { background: var(--surface2); color: var(--tp); }
+  .nav-dropdown-item.active { color: var(--accent); background: var(--accent-l); }
+
+  /* ── 사이드바 레이아웃 ── */
+  .panel-with-sidebar { display: flex; gap: 0; min-height: 400px; }
+  .sidebar { width: 180px; flex-shrink: 0; border-right: 1px solid var(--border); padding: 8px 0; margin-right: 28px; }
+  .sidebar-item { display: block; width: 100%; padding: 9px 16px; font-size: 13px; font-weight: 500; color: var(--ts); background: none; border: none; cursor: pointer; text-align: left; border-radius: var(--r2); transition: all 0.12s; }
+  .sidebar-item:hover { background: var(--surface2); color: var(--tp); }
+  .sidebar-item.active { color: var(--accent); background: var(--accent-l); font-weight: 600; }
+  .sidebar-item svg { width: 14px; height: 14px; margin-right: 8px; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .sidebar-label { font-size: 10px; font-weight: 700; color: var(--tm); text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 16px 4px; }
+  .panel-content { flex: 1; min-width: 0; }
+
+  /* 모바일: 사이드바 → 상단 탭 */
+  @media (max-width: 640px) {
+    .panel-with-sidebar { flex-direction: column; }
+    .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 8px; margin-right: 0; margin-bottom: 20px; display: flex; gap: 4px; overflow-x: auto; }
+    .sidebar-label { display: none; }
+    .sidebar-item { white-space: nowrap; padding: 7px 12px; }
+  }
+
+
+  /* ── 공통 개선의견 안내 ── */
+  .feedback-footer { max-width: 1000px; margin: -48px auto clamp(18px,3vh,48px); padding: 0 24px; }
+  .feedback-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; box-shadow: var(--sh); }
+  .feedback-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .feedback-title { font-size: 13px; font-weight: 600; color: var(--tp); }
+  .feedback-desc { font-size: 12px; color: var(--ts); line-height: 1.55; }
+  .feedback-btn { height: 34px; padding: 0 14px; background: var(--accent-l); color: var(--accent); border: 1px solid var(--accent-m); border-radius: var(--r2); font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
+  .feedback-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  @media (max-width: 640px) {
+    .feedback-footer { margin: -36px auto 36px; padding: 0 14px; }
+    .feedback-box { flex-direction: column; align-items: flex-start; }
+    .feedback-btn { width: 100%; }
+  }
+
+
+  /* ═══════════════════════════════════════
+     재단 톤 적용 레이어 (2026-07 UI/UX 개선)
+     ═══════════════════════════════════════ */
+
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+             overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+
+  /* 키보드 포커스 — 전 요소 공통 */
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .s-input:focus, textarea:focus, select:focus, input[type="text"]:focus {
+    border-color: var(--accent); box-shadow: var(--focus); }
+
+  /* 재단식 두 톤 제목 */
+  .pg-title { font-size: 24px; font-weight: 700; color: var(--navy);
+              line-height: 1.35; letter-spacing: -0.02em; }
+  .pg-title em { font-style: normal; color: var(--accent); }
+  .pg-title.hero { font-size: 30px; margin-bottom: 12px; }
+  .pg-desc { margin-top: 8px; font-size: 13.5px; color: var(--ts); line-height: 1.7; }
+  .pg-desc strong { color: var(--tp); font-weight: 600; }
+
+  /* 섹션 라벨 (최근 조회 기록 등) */
+  .sec-label { font-size: 12px; font-weight: 700; color: var(--navy);
+               letter-spacing: 0.02em; margin-bottom: 10px; }
+
+  /* 홈 */
+  .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+               max-width: 640px; margin: 0 auto; }
+  .home-card:focus-visible { border-color: var(--accent); box-shadow: var(--focus); }
+
+  /* 사이드바 — 재단 게시판식 파랑 헤더 블록 */
+  .sidebar { border-right: none; background: var(--surface); border: 1px solid var(--border);
+             border-radius: var(--r); padding: 0 0 8px; overflow: hidden; }
+  .sidebar-label { background: var(--accent); color: #fff; font-size: 13px; font-weight: 700;
+                   letter-spacing: 0; text-transform: none; padding: 14px 16px; margin-bottom: 6px; }
+  .sidebar-item { border-radius: 0; padding: 10px 16px; }
+  .sidebar-item.active { background: var(--accent-l); box-shadow: inset 3px 0 0 var(--accent); }
+
+  /* 햄버거 */
+  .nav-toggle { display: none; width: 40px; height: 40px; border: 1px solid var(--border);
+                border-radius: var(--r2); background: var(--surface); cursor: pointer;
+                flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+                flex-shrink: 0; transition: background 0.15s, border-color 0.15s; }
+  .nav-toggle:hover { background: var(--surface2); border-color: var(--border2); }
+  .nav-toggle span { display: block; width: 17px; height: 2px; border-radius: 2px;
+                     background: var(--navy); transition: transform 0.2s, opacity 0.2s; }
+  .nav-toggle.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .nav-toggle.open span:nth-child(2) { opacity: 0; }
+  .nav-toggle.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  /* 상태 배지 — 재단 3종 체계 */
+  .q-cat { background: var(--accent); color: #fff; }
+  .q-cat.answered { background: var(--success-bg); color: var(--success); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important;
+                             transition-duration: 0.01ms !important; }
+  }
+
+  /* ── 태블릿 이하: 상단 메뉴 접기 ── */
+  @media (max-width: 860px) {
+    .nav-toggle { display: flex; }
+    nav { position: absolute; top: 100%; left: 0; right: 0; z-index: 150;
+          display: none; flex-direction: column; align-items: stretch; gap: 2px;
+          padding: 8px; background: var(--surface);
+          border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+          box-shadow: 0 10px 24px rgba(28,38,75,0.10); }
+    nav.open { display: flex; }
+    .nav-tab, .nav-group-btn { width: 100%; text-align: left; justify-content: space-between;
+                               padding: 12px 14px; font-size: 14px; border-radius: var(--r2); }
+    .nav-group { display: block; position: static; }
+    .nav-dropdown { position: static; min-width: 0; border: none; box-shadow: none;
+                    background: var(--surface2); border-radius: var(--r2); margin: 2px 0 6px; }
+    .nav-dropdown-item { padding: 11px 26px; font-size: 13.5px; }
+  }
+
+  /* ═══ 홈 히어로 — 가운데 텍스트 + 좌우 보조 카드 ═══ */
+  .home-hero { display: grid; align-items: center; gap: 12px 30px;
+               grid-template-columns: 236px minmax(0,1fr) 236px;
+               grid-template-areas: ".    text cardB"
+                                    ".    text cardA";
+               padding: clamp(16px, 3.4vh, 46px) 0 clamp(14px, 3vh, 40px); }
+  .hero-text  { grid-area: text; text-align: center; }
+  .hero-card-a { grid-area: cardA; }
+  .hero-card-b { grid-area: cardB; }
+
+  /* 계단식 크기: 제목 40 → 태그라인 20 → 설명 15 */
+  .pg-title.hero { font-size: clamp(25px, 2.7vw, 36px); line-height: 1.25;
+                   margin-bottom: 8px; letter-spacing: -0.03em; }
+  .pg-title.hero, .pg-title.hero em { color: var(--accent); }
+  .hero-tagline { font-size: clamp(17px, 1.5vw, 20px); font-weight: 600; color: var(--navy);
+                  letter-spacing: -0.02em; margin-bottom: 12px; }
+  .hero-lead { font-size: 15px; color: var(--ts); line-height: 1.7;
+               max-width: 580px; margin: 0 auto; }
+
+  /* 좌우 카드 (동일 규격) */
+  .hero-card { display: block; background: var(--surface); border: 1px solid var(--border);
+               border-radius: var(--r); padding: 15px 17px; box-shadow: var(--sh);
+               text-decoration: none; transition: border-color 0.15s, box-shadow 0.15s; }
+  .hero-card-label { display: flex; align-items: center; gap: 5px; font-size: 11.5px;
+                     font-weight: 600; color: var(--tm); margin-bottom: 7px; }
+  .hero-card-label svg { width: 13px; height: 13px; fill: none; stroke: var(--accent);
+                         stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+                         flex-shrink: 0; }
+  .hero-card-main { display: block; font-size: 18px; font-weight: 700; color: var(--navy);
+                    letter-spacing: -0.02em; line-height: 1.25; text-decoration: none; }
+  .hero-card-sub { font-size: 12px; color: var(--tm); margin-top: 4px; }
+  a.hero-card:hover { border-color: var(--accent-m); box-shadow: 0 4px 14px rgba(28,38,75,0.09); }
+  a.hero-card:hover .hero-card-main { color: var(--accent); }
+
+  .hero-card.compact { padding: 12px 15px; }
+  .hero-card.compact .hero-card-label { font-size: 11px; margin-bottom: 4px; }
+  .hero-card.compact .hero-card-main { font-size: 16px; }
+  .hero-card.compact .hero-card-sub { font-size: 11.5px; margin-top: 2px; }
+
+  @media (max-width: 1060px) {
+    .home-hero { grid-template-columns: 1fr 1fr;
+                 grid-template-areas: "text text" "cardB cardA";
+                 gap: 20px; padding: 34px 0 30px; }
+    .br-wide { display: none; }
+  }
+  @media (max-width: 560px) {
+    .home-hero { grid-template-columns: 1fr;
+                 grid-template-areas: "text" "cardB" "cardA"; }
+  }
+
+  /* 드롭다운 아이콘 (사이드바와 동일 규격) */
+  .nav-dropdown-item { display: flex; align-items: center; gap: 9px; }
+  .nav-dropdown-item svg { width: 15px; height: 15px; fill: none; stroke: currentColor;
+                           stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+                           flex-shrink: 0; opacity: 0.75; }
+  .nav-dropdown-item.active svg, .nav-dropdown-item:hover svg { opacity: 1; }
+
+  /* ═══ 배경 문양 (재단 메인 참고) ═══
+     배경색을 html 로 옮기고 body 를 투명하게 만든 뒤,
+     body::before / ::after 를 z-index -1 로 깔았다.
+     main 에 position 을 주면 질문 모달(z-index 300)이
+     헤더(z-index 100) 밑으로 깔리므로 그 방식은 피함. */
+  html { background: var(--bg); }
+  body { background: transparent; position: relative; }
+
+  body::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0;
+    height: 660px; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(760px 480px at 88% -8%,  rgba(76,104,187,0.14), transparent 68%),
+      radial-gradient(560px 420px at  4% 42%,  rgba(97,161,176,0.10), transparent 70%),
+      radial-gradient(1000px 520px at 46% -12%, rgba(76,104,187,0.07), transparent 72%),
+      linear-gradient(180deg, #eaf0fa 0%, rgba(244,247,251,0) 100%);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 100%);
+            mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 100%);
+  }
+
+  /* 우상단 사선 줄무늬 — 왼쪽으로 갈수록 사라지게 마스크 */
+  body::after {
+    content: ""; position: absolute; top: 0; right: 0;
+    width: min(64%, 940px); height: 540px;
+    z-index: -1; pointer-events: none;
+    background: repeating-linear-gradient(142deg,
+      rgba(76,104,187,0.055) 0 60px,
+      rgba(76,104,187,0)    60px 200px);
+    -webkit-mask-image: linear-gradient(258deg, #000 25%, transparent 88%);
+            mask-image: linear-gradient(258deg, #000 25%, transparent 88%);
+  }
+
+  @media (max-width: 640px) {
+    body::before { height: 420px; }
+    body::after  { width: 85%; height: 340px; }
+  }
+
+  /* ═══ 한글 줄바꿈 ═══
+     keep-all : 어절(띄어쓰기) 단위로만 끊기 → "입력하지 않/셔도" 방지
+     pretty   : 마지막 줄에 한 단어만 남는 것 방지
+     단, DOI·URL 같은 긴 영문 토큰은 예외로 강제 분리 */
+  body { word-break: keep-all; overflow-wrap: break-word; text-wrap: pretty; }
+
+  h1, h2, h3, .pg-title, .hero-tagline, .home-card-title, .sr-item-title,
+  .rc-title, .patent-title, .faq-question, .q-title, .notice-title,
+  .check-title, .feedback-title { text-wrap: balance; }
+
+  .mono, .cell-v.mono, .rc-doi, .issn-item, .ex-chip, .s-input.mono,
+  .notice-attach, .sr-item-meta span { word-break: break-all; }
+
+  /* ═══ 폭 확장 (재단 사이트 컨테이너 폭에 맞춤) ═══ */
+  main            { max-width: 1320px; padding: clamp(18px, 3vh, 32px) 32px clamp(40px, 8vh, 80px); }
+  .header-inner   { max-width: 1320px; }
+  .feedback-footer{ max-width: 1320px; padding: 0 32px; }
+  header          { padding: 0 32px; }
+
+  /* 홈: 2x2 → 넓은 화면에서 4열 (재단 "자주 찾는 서비스" 배열) */
+  .home-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+               max-width: none; gap: clamp(11px, 1.6vh, 16px); }
+  .home-card { padding: clamp(15px, 2.4vh, 24px) 22px; gap: clamp(5px, 0.8vh, 8px); }
+  .home-card-desc { line-height: 1.55; }
+  .hero-lead { max-width: 620px; }
+
+  /* 결과 카드: 폭이 넓어진 만큼 칸 수를 늘려 빈 공간 제거 */
+  @media (min-width: 1100px) {
+    .rc-grid     { grid-template-columns: repeat(3, 1fr); }
+    .rc-cell:nth-child(2n)  { border-right: 1px solid var(--border); }
+    .rc-cell:nth-child(3n)  { border-right: none; }
+    .rc-cell:last-child, .rc-cell:nth-last-child(2):not(.full),
+    .rc-cell:nth-last-child(3):not(.full) { border-bottom: none; }
+    .rc-cell.full { border-right: none; }
+    .patent-grid { grid-template-columns: repeat(3, 1fr); column-gap: 24px; }
+    .check-list  { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* 폭 제한은 '배경 없는' 영역에만.
+     배경이 있는 박스(faq-answer, q-answer 등)에 걸면
+     박스가 카드 폭을 못 채워서 오른쪽이 비어 보인다. */
+  .chat-wrap     { max-width: 900px; }
+  .abstract-text { max-width: 90ch; }
+
+  @media (max-width: 1100px) {
+    main { max-width: 1000px; padding: 28px 24px 72px; }
+    .header-inner, .feedback-footer { max-width: 1000px; }
+  }
+
+  /* ── 모바일 ── */
+  @media (max-width: 640px) {
+    header { padding: 0 14px; }
+    main { padding: 20px 14px 60px; }
+    .feedback-footer { padding: 0 14px; }
+    .header-inner { height: 58px; }
+    .home-grid { grid-template-columns: 1fr; max-width: none; }
+    .pg-title { font-size: 21px; }
+    .pg-title.hero { font-size: 25px; }
+    .search-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .stab { max-width: none; flex: 0 0 auto; white-space: nowrap; }
+    .check-list { grid-template-columns: 1fr; }
+    .sidebar { display: block; padding: 0 0 8px; margin-bottom: 18px; }
+    .sidebar-label { display: block; }
+    .sidebar-item { white-space: normal; padding: 11px 16px; }
+    .chat-bubble { max-width: 88%; }
+    .stat-cell { padding: 12px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#" aria-label="국가연구개발성과 도우미 홈" onclick="resetHome(event)">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCACYAeYDASIAAhEBAxEB/8QAHgABAAICAwEBAQAAAAAAAAAAAAgJBgcBBAUDAgr/xABaEAABAwMCAwQEBQwMCwgDAAABAAIDBAUGBxEIEiEJEzFBFCJRYRUWMnGBGSM4QlZydoKUobHRFxgzN0NSYnWRs7TSJCUmKDQ1VVd0ksM5Y4OVoqPC8LLB0//EAB0BAQACAwEBAQEAAAAAAAAAAAAEBQIDBgcBCAn/xAA+EQABAwIDBQUGBAQFBQAAAAABAAIDBBEFITEGEkFRYRNxgZHBFCIyodHwQlKx4RUjMzQHFiU1Q2JykqLx/9oADAMBAAIRAxEAPwC1NERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERcIfBV18X/aC3Bl2r8K0rrBSRUz3QV2TQ7Oe946OjpfJoB3Bl6kkerttzGyoMPnxGXsoB3ngO9Raipjpmb8hU39QdaMG0qh7zLcqtdiJG7YaqoAmcPa2MbvP0BaRu/aQ6M22V7KeuvN25Ttz0VreGu+YyFm6qcqaqqutfNW11TNW1szi+WpqZHSSyOPm5ziSfpK7EEG/ivQoNk6Vg/nPLj0sB6/quUnx2W/8toA81apQ9pPpDWSBsjcio27/AC5rYCP/AEPcfzLY+IcX+kOayxw0Ob26mqJPCG5c1G7/AN0NH51TpBD4dF6EMG42PUexZS7LUTh7jnA94Poq/wDzHUsPvAEeP1V7FJW09fTsnpp46iB43bLE8Oa4e4joV91S1p9qbl+mlW2oxfIbhZiDuYaeY9y/3OiO7HD5wphaQdoXNzQUGolpa5p2abzaWEbe+SDf87D+KuYrNmqqnBdCd8eR8voVbUu0tJMd2f3D5jz+oUpsy1VpsJyqjttbSufRzQCV9TGd3RkuIHq+Y6dfNZnbrlTXaiiq6OdlTTSt5mSxncEKMmrOYWfOb/Q3aw3GC6Wyahj7upp38zT6z9x7iPMHYjzXRwXUG5YLX89M4z0Tz9eo3n1X+8fxXe/+lfm2TbSTC8bqKGvF4g6wNs2+HEfPv0XQtqQXa3adCpZovHxbKrfl9qjrrfLzxno+M9Hxu82uHkV7C9dhmjqI2ywuDmnMEaFTQbi4RERbl9RFwuURERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERRg7QTXCq0i0VfbrRUOpr/k0rrdTzRnZ8MPLvPI0+RDdmg+ReD5KqjCcGvee5BSWLHLVU3e61J5YaSkZzOIHiT5NaPNxIA8ypZdqDkMl21vx+zNcXwWuyteIh1+uzSvLiB7S1kY+hTB4NeG+i0G01pairpWOzG8QsqLpVFvrxgjmbTNPk1gPUebtz7NvSaOrjwPCWSgXkkzH79AP1XJzxPxGtdHezW6/fVRcwDsuMnudJHUZbl1BYJHNB9Et9Oax7Pc55cxu/zbhZvWdllbhDvRaiVbJgOnpNqY5pP4sgI/Op3ouaftFiT3bwkt0AH0VmMHorWLL+J+qrDzLs6dS8ZY+azT2rKYWgkMpZjTzkfeSbNJ+Zy0HkOE3zCrmbdkFnrbNXD+AroHROPvbuNnD3jcK7heJlmF2LOrS+2ZBaaS8UD/GCsiEjR7xv1B942Ks6XamoYQKlocOYyP0/RUtXs1DKL07y09cx9f1VLcEHh7V6MECmnrJwANhFRddOaonbd5sVfJv9EMx/M1//ADKJNyx+vx251FtulFPb6+ndyTU1TGWSMPsIP/0rt6TEaevbvQOz5cR4LzHE6Gqw527UNsOB4Hx+yt8aJM7rAabff1p5nDf77ZZ6CCtQaU5rR0FuhslXtTva9zoZnH1H8x35T7DufmW1WzH2r+e3+IGGVlDtFVPqoy0SPLmng5pORB0PXlxXo+D1MU9HGI3XsAD0KyfEMwr8Lu7K6hk6eEsDj6krfYf/ANHyUpMSyyhzKzxV9C/dp9WSJ3yon+bXf/evioctm9qyXBs3q8JvUdbTOL4HENqKffpKz2fOPIrXsptRLgkop6g3gcc/+k8x6j1XTQzbhsdFLxF0bJeaS/2unuFFKJqadvMxw/QfYR4ELvL9NxyNlYHsNwcweitNVx5rlEWxERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERFXrxL4EzI+0F07o62LvaK6Mt87mOHRzIZJS4fNvFsfnVhLeo3UbeJXEDR616I6gNbtFb74LPWv23DY6gERE/+J6vzv8AepItGwAVzXT9tBTgaNbbxBPpZVtLH2cs1+Jv4W/+r9IiKmVkiIiIi11q/oXjGslr7m70vcXGJpFNdKcATwH2b/bN38Wnp8x6rYqLbFK+F4kjNiFongiqYzFM0OadQVV5qlorkOj18FDeIO9pJiRS3GEHualo9h+1dt4tPUe8dVurSrTa55VovBkVFLJW1tNVTwyUp6ufCwgAt9pHXp5j3jrL/L8PtOdWGps96o2VtBUDZzHjq0+Tmnxa4eRC8TSTTWLSnEBj8Fa+vgjqZpo5pGBruV7y4A7dNx4b+fuUnaI0u02F+xVzPfByI1HUcjzGhXC0GzRw3E3SxOvC5p45g5WHXofPmoiNn9q+zJt1uPX7Sj0Lvsps8O0RPNX07B8kn+FaPZ/G/p9q0UyoHtX45xfBp8IqXU0w7jwI5j7yKv5A6F265bj0S1GOM3ltqrZf8V1zwA5x6QynoHfMfA/QVJgdVAtk/vUrtD88+OGKinqZOe5W/aGUk9Xt+0f9IGx94XqOweNOIOFTnTNnq31HirClm3vcK2MuURezqyREXBOyIuURERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERFGzjB4yKPhfprPQUtl+MGSXZj5oaWScwwwwsIaZJHAEndx2DQOux6jZSTVWPax/v3Yh+Dw/tMqvcFpYqyuZFMLtzy7goVZK6GEuZqs3067Vuruua2miy/ErdZ8dqZhFV3GiqpZJKYO6CQtcNi0HYu89tyPBWJUtVFW00VRTysnglYJI5Y3BzXtI3BBHiCDvuv52VY32bnFj6RHTaR5XWfXY2n4u1k7vltHU0hJ8x1LPdu3yaunx3AY4ovaKNtt3UZ6c/DiqyirnOd2cx10KmvrfqlT6K6UZLm1VRuuEdnpe+FKx/IZnlzWMZzbHlBc5oJ2Ow36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" alt="한국연구재단" style="height:38px;width:auto;object-fit:contain;display:block;">
+    </a>
+    <nav id="main-nav">
+      <button class="nav-tab active" onclick="switchPanel('home', this)" data-panel="home">홈</button>
+
+      <div class="nav-group">
+        <button class="nav-group-btn" data-group="성과조회" onclick="toggleDropdown(this)">
+          성과 조회
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-item" onclick="switchPanel('doi', this)" data-panel="doi">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>논문 조회
+          </button>
+          <button class="nav-dropdown-item" onclick="switchPanel('patent', this)" data-panel="patent">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>특허 조회
+          </button>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <button class="nav-group-btn" data-group="질의응답" onclick="toggleDropdown(this)">
+          질의응답
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-item" onclick="switchPanel('faq', this)" data-panel="faq">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>자주 묻는 질문
+          </button>
+          <button class="nav-dropdown-item" onclick="switchPanel('chat', this)" data-panel="chat">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 상담
+          </button>
+          <button class="nav-dropdown-item" onclick="switchPanel('board', this)" data-panel="board">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>상담 게시판
+          </button>
+        </div>
+      </div>
+
+      <button class="nav-tab" onclick="switchPanel('notice', this)" data-panel="notice">공지사항</button>
+      <button class="nav-tab" onclick="switchPanel('iris', this)" data-panel="iris">IRIS 바로가기</button>
+    </nav>
+    <button class="nav-toggle" id="nav-toggle" type="button"
+            aria-label="메뉴 열기" aria-expanded="false" aria-controls="main-nav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- 홈 패널 -->
+  <div id="panel-home" class="panel active">
+    <section class="home-hero">
+      <div class="hero-text">
+        <h1 class="pg-title hero">국가연구개발성과 <em>도우미</em></h1>
+        <div class="hero-tagline">성과 입력, 더 쉽게</div>
+        <p class="hero-lead">논문·특허 서지정보 자동 조회부터 FAQ, AI 상담까지<br class="br-wide">성과 등록에 필요한 모든 것을 한 곳에서.</p>
+      </div>
+
+      <a class="hero-card hero-card-b" href="https://www.iris.go.kr/main.do" target="_blank" rel="noopener">
+        <div class="hero-card-label">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          성과 등록하러 가기
+        </div>
+        <div class="hero-card-main">IRIS 바로가기</div>
+        <div class="hero-card-sub">범부처 통합연구지원시스템</div>
+      </a>
+
+      <div class="hero-card hero-card-a compact">
+        <div class="hero-card-label">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 1.12 4.18 2 2 0 0 1 3.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          성과조사콜센터
+        </div>
+        <div class="hero-card-main">042-869-6677</div>
+        <div class="hero-card-sub">평일 09:00 ~ 18:00</div>
+      </div>
+    </section>
+
+    <div class="home-grid">
+
+      <div class="home-card" role="button" tabindex="0" onclick="goPanel('doi')">
+        <div class="home-card-icon" style="background:#eef1f9;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4c68bb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="home-card-title">논문 조회</div>
+        <div class="home-card-desc">DOI 또는 제목으로 논문 서지정보를<br>자동으로 가져옵니다.<br><span style="font-size:11px;color:var(--tm);">CrossRef DB 사용</span></div>
+        <div class="home-card-arrow">바로가기 →</div>
+      </div>
+
+      <div class="home-card" role="button" tabindex="0" onclick="goPanel('patent')">
+        <div class="home-card-icon" style="background:#ebf4f6;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#61a1b0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="home-card-title">특허 조회</div>
+        <div class="home-card-desc">출원번호·등록번호·발명 명칭으로<br>특허 서지정보를 조회합니다.<br><span style="font-size:11px;color:var(--tm);">KIPRIS DB 사용</span></div>
+        <div class="home-card-arrow">바로가기 →</div>
+      </div>
+
+      <div class="home-card" role="button" tabindex="0" onclick="goPanel('faq')">
+        <div class="home-card-icon" style="background:#eaedf6;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4a5ea3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+        <div class="home-card-title">FAQ</div>
+        <div class="home-card-desc">성과 등록·관리·평가 관련<br>자주 묻는 질문을 확인하세요.</div>
+        <div class="home-card-arrow">바로가기 →</div>
+      </div>
+
+      <div class="home-card" role="button" tabindex="0" onclick="goPanel('chat')">
+        <div class="home-card-icon" style="background:#e9ecf4;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1c264b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="home-card-title">AI 상담</div>
+        <div class="home-card-desc">FAQ에서 못 찾으셨나요?<br>AI에게 바로 물어보세요.</div>
+        <div class="home-card-arrow">바로가기 →</div>
+      </div>
+
+
+
+
+    </div>
+
+
+  </div>
+
+  <!-- DOI/제목 검색 패널 -->
+  <div id="panel-doi" class="panel">
+    <div class="panel-with-sidebar">
+      <div class="sidebar">
+        <div class="sidebar-label">성과 조회</div>
+        <button class="sidebar-item active" onclick="switchPanel('doi', this)" data-panel="doi">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>논문 조회
+        </button>
+        <button class="sidebar-item" onclick="switchPanel('patent', this)" data-panel="patent">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>특허 조회
+        </button>
+      </div>
+      <div class="panel-content">
+    <div style="margin-bottom:16px;">
+      <h1 class="pg-title">논문 <em>조회</em></h1>
+      <p class="pg-desc">DOI 또는 논문 제목으로 서지정보를 자동 조회합니다. CrossRef DB 사용 · <strong>영문 검색 시 더 정확합니다.</strong></p>
+    </div>
+
+    <div class="check-card">
+      <div class="check-head">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span class="check-title">입력 전 확인사항</span>
+      </div>
+      <p class="check-desc">논문 성과는 과제 관련성, 참여자 기여 여부, 사사표기, 최종 출판 여부를 함께 확인해야 합니다. 조회 결과는 성과입력 편의를 위한 참고자료로 활용해 주세요.</p>
+      <ul class="check-list">
+        <li>해당 논문이 수행 과제와 관련된 성과인가요?</li>
+        <li>과제 참여자가 논문 성과 창출에 기여했나요?</li>
+        <li>사사표기에 과제번호 또는 지원사업 정보가 명시되어 있나요?</li>
+        <li>Accepted, Early Access, Preprint가 아닌 최종 출판 논문인가요?</li>
+        <li>DOI, ISSN, 권·호, 게재일자 등 입력 정보가 확인되었나요?</li>
+        <li>SCIE 여부는 별도 자료를 통해 확인했나요?</li>
+      </ul>
+      <div class="check-note">※ 최종 성과 인정 여부는 사업별 기준 및 담당자 확인이 필요합니다.</div>
+    </div>
+
+    <div class="search-card">
+      <div class="search-tabs">
+        <button class="stab active" id="stab-title" onclick="switchSearch('title')">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          논문 제목으로 검색
+        </button>
+        <button class="stab" id="stab-doi" onclick="switchSearch('doi')">
+          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          DOI로 검색
+        </button>
+      </div>
+      <div class="search-body">
+        <div id="search-doi-panel" style="display:none;">
+          <div class="input-row">
+            <input class="s-input mono" id="doi-input" type="text" placeholder="DOI 입력  (예: 10.1038/s41586-021-03819-2)" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter') doSearchDoi()"/>
+            <button class="s-btn" id="doi-btn" onclick="doSearchDoi()">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              조회
+            </button>
+          </div>
+          <div class="hint-row">
+            <span class="hint-l">예시:</span>
+            <span class="ex-chip" onclick="fillDoi('10.1038/s41586-021-03819-2')">10.1038/s41586-021-03819-2</span>
+            <span class="ex-chip" onclick="fillDoi('10.1126/science.abb2507')">10.1126/science.abb2507</span>
+            <span class="ex-chip" onclick="fillDoi('10.1016/j.cell.2020.02.058')">10.1016/j.cell.2020.02.058</span>
+          </div>
+        </div>
+        <div id="search-title-panel">
+          <div class="input-row">
+            <input class="s-input" id="title-input" type="text" placeholder="논문 제목 키워드 입력  (영문 권장)" autocomplete="off" onkeydown="if(event.key==='Enter') doSearchTitle()"/>
+            <button class="s-btn" id="title-btn" onclick="doSearchTitle()">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              검색
+            </button>
+          </div>
+          <div class="hint-row">
+            <span class="hint-l" style="color:var(--tm);font-size:12px;">최대 10개 결과를 보여줍니다. 결과 목록에서 해당 논문을 선택하세요.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="sr-area"></div>
+    <div id="result-area"></div>
+    <!-- 최근 조회 기록 -->
+    <div id="history-section" style="margin-top:28px;">
+      <div style="font-size:12px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">최근 조회 기록</div>
+      <div id="history-list"></div>
+    </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 상담 패널 -->
+  <div id="panel-chat" class="panel">
+    <div class="panel-with-sidebar">
+      <div class="sidebar">
+        <div class="sidebar-label">질의응답</div>
+        <button class="sidebar-item" onclick="switchPanel('faq', this)" data-panel="faq">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>자주 묻는 질문
+        </button>
+        <button class="sidebar-item active" onclick="switchPanel('chat', this)" data-panel="chat">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 상담
+        </button>
+        <button class="sidebar-item" onclick="switchPanel('board', this)" data-panel="board">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>상담 게시판
+        </button>
+      </div>
+      <div class="panel-content">
+    <div style="margin-bottom:20px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+      <div>
+        <h1 class="pg-title">AI 상담 <em>챗봇</em></h1>
+        <p class="pg-desc">국가연구개발 성과입력 관련 궁금한 점을 질문하세요.</p>
+      </div>
+      <button onclick="resetChat()" title="대화 기록을 지우고 처음부터 다시 시작합니다" style="flex-shrink:0;height:34px;padding:0 14px;background:var(--surface);color:var(--ts);border:1px solid var(--border2);border-radius:var(--r2);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all 0.12s;" onmouseover="this.style.background='var(--accent-l)';this.style.color='var(--accent)';this.style.borderColor='var(--accent-m)';" onmouseout="this.style.background='var(--surface)';this.style.color='var(--ts)';this.style.borderColor='var(--border2)';">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        새 대화
+      </button>
+    </div>
+
+    <div class="chat-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;display:flex;flex-direction:column;height:clamp(360px,60vh,560px);">
+      <!-- 메시지 영역 -->
+      <div id="chat-messages" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;">
+        <div class="chat-msg bot">
+          <div class="chat-bubble bot">안녕하세요! 국가연구개발 성과입력 AI 상담 챗봇입니다.<br>성과 등록·관리 관련 궁금한 점을 질문해 주세요 😊</div>
+        </div>
+      </div>
+      <!-- 입력 영역 -->
+      <div style="padding:14px 16px;border-top:1px solid var(--border);background:var(--surface);display:flex;gap:8px;align-items:flex-end;">
+        <textarea id="chat-input" placeholder="질문을 입력하세요..." style="flex:1;padding:10px 13px;border:1px solid var(--border2);border-radius:var(--r2);font-size:14px;font-family:inherit;color:var(--tp);background:var(--surface);outline:none;resize:none;height:44px;max-height:120px;line-height:1.5;overflow-y:auto;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+        <button onclick="sendChat()" id="chat-send-btn" style="height:44px;padding:0 18px;background:var(--accent);color:#fff;border:none;border-radius:var(--r2);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;">전송</button>
+      </div>
+    </div>
+    <p style="margin-top:8px;font-size:12px;color:var(--tm);text-align:center;">AI 답변은 참고용이며 정확한 내용은 담당자에게 확인하세요 · 성과조사콜센터 042-869-6677</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 특허 조회 패널 -->
+  <div id="panel-patent" class="panel">
+    <div class="panel-with-sidebar">
+      <div class="sidebar">
+        <div class="sidebar-label">성과 조회</div>
+        <button class="sidebar-item" onclick="switchPanel('doi', this)" data-panel="doi">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>논문 조회
+        </button>
+        <button class="sidebar-item active" onclick="switchPanel('patent', this)" data-panel="patent">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>특허 조회
+        </button>
+      </div>
+      <div class="panel-content">
+    <div style="margin-bottom:20px;">
+      <h1 class="pg-title">특허 <em>조회</em></h1>
+      <p class="pg-desc">출원번호, 등록번호 또는 발명 명칭으로 특허 서지정보를 조회합니다. KIPRIS DB 사용 · <strong>비공개 특허는 검색되지 않습니다.</strong></p>
+    </div>
+
+    <div class="check-card">
+      <div class="check-head">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span class="check-title">입력 전 확인사항</span>
+      </div>
+      <p class="check-desc">특허 성과는 과제 관련성, 사사표기 또는 과제 연계 근거, 출원·등록 정보, 출원인 명의 및 발명자 정보를 함께 확인해야 합니다. 조회 결과는 성과입력 편의를 위한 참고자료로 활용해 주세요.</p>
+      <ul class="check-list">
+        <li>해당 특허가 수행 과제와 관련된 성과인가요?</li>
+        <li>과제 참여자 또는 수행기관이 특허 성과와 관련되어 있나요?</li>
+        <li>사사표기에 과제번호 또는 지원사업 정보가 명시되어 있나요?</li>
+        <li>출원번호 또는 등록번호가 정확한가요?</li>
+        <li>출원일, 등록일, 출원인, 발명자 정보가 확인되었나요?</li>
+        <li>출원인이 개인 명의가 아닌 주관기관 명의로 되어 있나요?</li>
+      </ul>
+      <div class="check-note">※ 비공개 특허 또는 일부 해외 특허는 조회되지 않을 수 있습니다.</div>
+    </div>
+
+    <div class="search-card">
+      <div class="search-tabs">
+        <button class="stab active" id="ptab-word" onclick="switchPatentSearch('word')">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          발명 명칭
+        </button>
+        <button class="stab" id="ptab-application" onclick="switchPatentSearch('application')">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          출원번호
+        </button>
+        <button class="stab" id="ptab-registration" onclick="switchPatentSearch('registration')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          등록번호
+        </button>
+      </div>
+      <div class="search-body">
+        <div id="patent-application-panel" style="display:none;">
+          <div class="input-row">
+            <select id="patent-app-country" style="height:44px;padding:0 10px;border:1px solid var(--border2);border-radius:var(--r2);font-size:14px;font-family:inherit;color:var(--tp);background:var(--surface);outline:none;flex-shrink:0;">
+              <option value="KR" selected>🇰🇷 한국</option>
+              <option value="US">🇺🇸 미국</option>
+              <option value="EP">🇪🇺 유럽</option>
+              <option value="JP">🇯🇵 일본</option>
+              <option value="CN">🇨🇳 중국</option>
+              <option value="WO">🌐 PCT</option>
+            </select>
+            <input class="s-input" id="patent-app-input" placeholder="출원번호 입력 (예: 10-2024-0012345)" onkeydown="if(event.key==='Enter') searchPatent()">
+            <button class="s-btn" onclick="searchPatent()">조회</button>
+          </div>
+          <p style="margin-top:8px;font-size:12px;color:var(--tm);">하이픈(-) 포함 또는 미포함 모두 가능합니다.</p>
+        </div>
+        <div id="patent-registration-panel" style="display:none;">
+          <div class="input-row">
+            <select id="patent-reg-country" style="height:44px;padding:0 10px;border:1px solid var(--border2);border-radius:var(--r2);font-size:14px;font-family:inherit;color:var(--tp);background:var(--surface);outline:none;flex-shrink:0;">
+              <option value="KR" selected>🇰🇷 한국</option>
+              <option value="US">🇺🇸 미국</option>
+              <option value="EP">🇪🇺 유럽</option>
+              <option value="JP">🇯🇵 일본</option>
+              <option value="CN">🇨🇳 중국</option>
+              <option value="WO">🌐 PCT</option>
+            </select>
+            <input class="s-input" id="patent-reg-input" placeholder="등록번호 입력 (예: 10-1234567)" onkeydown="if(event.key==='Enter') searchPatent()">
+            <button class="s-btn" onclick="searchPatent()">조회</button>
+          </div>
+          <p style="margin-top:8px;font-size:12px;color:var(--tm);">하이픈(-) 포함 또는 미포함 모두 가능합니다.</p>
+        </div>
+        <div id="patent-word-panel">
+          <div class="input-row">
+            <input class="s-input" id="patent-word-input" placeholder="발명 명칭 입력 (예: 인공지능 기반 이미지 분류)" onkeydown="if(event.key==='Enter') searchPatent()">
+            <button class="s-btn" onclick="searchPatent()">조회</button>
+          </div>
+          <p style="margin-top:8px;font-size:12px;color:var(--tm);">🇰🇷 한국 특허만 검색 가능합니다. 해외 특허는 출원번호 또는 등록번호 탭에서 국가를 선택하여 검색하세요.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="patent-result-area"></div>
+
+    <!-- 특허 최근 조회 기록 -->
+    <div id="patent-history-section" style="margin-top:28px;">
+      <div style="font-size:12px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">최근 조회 기록</div>
+      <div id="patent-history-list"></div>
+    </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 공지사항 패널 -->
+  <div id="panel-notice" class="panel">
+    <div style="margin-bottom:20px;">
+      <h1 class="pg-title">공지사항</h1>
+      <p class="pg-desc">성과조사 관련 공지 및 자료를 확인하세요.</p>
+    </div>
+    <!-- 검색창 -->
+    <div style="margin-bottom:14px;">
+      <input id="notice-search" type="text" placeholder="공지사항 검색..." oninput="noticeSearch(this.value)"
+        style="width:100%;height:42px;padding:0 14px 0 40px;border:1px solid var(--border2);border-radius:var(--r2);font-size:14px;font-family:inherit;color:var(--tp);background:var(--surface) url('data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a93a2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E') no-repeat 14px center;background-size:16px;outline:none;transition:border-color 0.15s,box-shadow 0.15s;"
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(76,104,187,0.16)'"
+        onblur="this.style.borderColor='';this.style.boxShadow=''"/>
+    </div>
+    <!-- 카테고리 필터 (동적 생성) -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;" id="notice-filter-bar">
+      <button class="cat-btn active" onclick="noticeFilter('전체',this)">전체</button>
+    </div>
+    <div id="notice-list"><div class="loading-wrap"><div class="spinner"></div><span>불러오는 중...</span></div></div>
+  </div>
+
+  <!-- IRIS 바로가기 패널 -->
+  <div id="panel-iris" class="panel">
+    <div style="margin-bottom:24px;">
+      <h1 class="pg-title">IRIS <em>바로가기</em></h1>
+      <p class="pg-desc">버튼을 클릭하면 IRIS로 바로 이동합니다.</p>
+    </div>
+    <div style="text-align:center;padding:40px 0;">
+      <a href="https://www.iris.go.kr/main.do" target="_blank" rel="noopener"
+        style="display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#fff;text-decoration:none;padding:16px 36px;border-radius:var(--r);font-size:16px;font-weight:600;transition:opacity 0.15s;"
+        onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        IRIS 바로가기
+      </a>
+      <p style="margin-top:16px;font-size:13px;color:var(--tm);">범부처 통합 연구지원시스템 (iris.go.kr)</p>
+    </div>
+  </div>
+
+  <!-- FAQ 패널 -->
+  <div id="panel-faq" class="panel">
+    <div class="panel-with-sidebar">
+      <div class="sidebar">
+        <div class="sidebar-label">질의응답</div>
+        <button class="sidebar-item active" onclick="switchPanel('faq', this)" data-panel="faq">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>자주 묻는 질문
+        </button>
+        <button class="sidebar-item" onclick="switchPanel('chat', this)" data-panel="chat">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 상담
+        </button>
+        <button class="sidebar-item" onclick="switchPanel('board', this)" data-panel="board">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>상담 게시판
+        </button>
+      </div>
+      <div class="panel-content">
+    <div style="margin-bottom:20px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h1 class="pg-title">자주 묻는 <em>질문</em></h1>
+      </div>
+    </div>
+
+    <!-- 검색창 -->
+    <div style="margin-bottom:14px;">
+      <input id="faq-search" type="text" placeholder="질문 검색..." oninput="faqSearch(this.value)"
+        style="width:100%;height:42px;padding:0 14px 0 40px;border:1px solid var(--border2);border-radius:var(--r2);font-size:14px;font-family:inherit;color:var(--tp);background:var(--surface) url('data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a93a2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E') no-repeat 14px center;background-size:16px;outline:none;transition:border-color 0.15s,box-shadow 0.15s;"
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(76,104,187,0.16)'"
+        onblur="this.style.borderColor='';this.style.boxShadow=''"/>
+    </div>
+    <!-- 카테고리 필터 (동적 생성) -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;" id="faq-filter-bar">
+      <button class="cat-btn active" onclick="faqFilter('전체',this)">전체</button>
+    </div>
+    <div id="faq-list"><div class="loading-wrap"><div class="spinner"></div><span>FAQ 불러오는 중...</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 상담 게시판 패널 -->
+  <div id="panel-board" class="panel">
+    <div class="panel-with-sidebar">
+      <div class="sidebar">
+        <div class="sidebar-label">질의응답</div>
+        <button class="sidebar-item" onclick="switchPanel('faq', this)" data-panel="faq">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>자주 묻는 질문
+        </button>
+        <button class="sidebar-item" onclick="switchPanel('chat', this)" data-panel="chat">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 상담
+        </button>
+        <button class="sidebar-item active" onclick="switchPanel('board', this)" data-panel="board">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>상담 게시판
+        </button>
+      </div>
+      <div class="panel-content">
+    <div style="margin-bottom:20px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h1 class="pg-title">상담 <em>게시판</em></h1>
+        <p class="pg-desc">국가연구개발성과 등록·관리 관련 궁금한 점을 익명으로 질문하세요.</p>
+      </div>
+      <button class="s-btn" onclick="openWriteModal()" style="height:38px;padding:0 16px;font-size:13px;">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        질문하기
+      </button>
+    </div>
+
+    <!-- 검색창 -->
+    <div style="margin-bottom:14px;">
+      <input id="board-search" type="text" placeholder="질문 검색..." oninput="boardSearch(this.value)"
+        style="width:100%;height:42px;padding:0 14px 0 40px;border:1px solid var(--border2);border-radius:var(--r2);font-size:14px;font-family:inherit;color:var(--tp);background:var(--surface) url('data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a93a2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E') no-repeat 14px center;background-size:16px;outline:none;transition:border-color 0.15s,box-shadow 0.15s;"
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(76,104,187,0.16)'"
+        onblur="this.style.borderColor='';this.style.boxShadow=''"/>
+    </div>
+    <!-- 필터 -->
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;" id="cat-filters">
+      <button class="cat-btn active" onclick="filterCat('전체',this)">전체</button>
+    </div>
+
+    <div id="board-list"></div>
+
+    <!-- 질문 모달 -->
+    <div id="write-modal" style="position:fixed;inset:0;background:rgba(28,38,75,0.5);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;">
+      <div style="background:#fff;border-radius:10px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:hidden;">
+        <div style="background:var(--navy);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:14px;font-weight:600;color:#fff;">질문 작성</span>
+          <button onclick="closeWriteModal()" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:20px;line-height:1;padding:0;">×</button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--tm);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">분류</div>
+            <select id="w-category" style="width:100%;height:40px;padding:0 12px;border:1px solid var(--border2);border-radius:6px;font-size:13px;font-family:inherit;color:var(--tp);background:#fff;outline:none;">
+              <option>성과등록</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--tm);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">닉네임 (선택)</div>
+            <input id="w-nickname" type="text" placeholder="익명" style="width:100%;height:40px;padding:0 12px;border:1px solid var(--border2);border-radius:6px;font-size:13px;font-family:inherit;color:var(--tp);background:#fff;outline:none;" maxlength="20"/>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--tm);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">질문 내용 <span style="color:var(--error);">*</span></div>
+            <textarea id="w-question" placeholder="질문을 입력해주세요." style="width:100%;height:120px;padding:10px 12px;border:1px solid var(--border2);border-radius:6px;font-size:13px;font-family:inherit;color:var(--tp);background:#fff;outline:none;resize:vertical;line-height:1.6;" maxlength="1000"></textarea>
+            <div style="text-align:right;font-size:11px;color:var(--tm);margin-top:3px;"><span id="q-count">0</span>/1000</div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button onclick="closeWriteModal()" style="height:38px;padding:0 16px;border:1px solid var(--border2);border-radius:6px;background:#fff;font-size:13px;font-family:inherit;color:var(--ts);cursor:pointer;">취소</button>
+            <button id="submit-btn" onclick="submitQuestion()" style="height:38px;padding:0 20px;background:var(--accent);border:none;border-radius:6px;font-size:13px;font-weight:500;font-family:inherit;color:#fff;cursor:pointer;">제출</button>
+          </div>
+        </div>
+      </div>
+    </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="feedback-footer">
+  <div class="feedback-box">
+    <div class="feedback-text">
+      <div class="feedback-title">개선사항이나 오류를 발견하셨나요?</div>
+      <div class="feedback-desc">사용 중 불편한 점, 조회 결과 오류, 추가되었으면 하는 기능은 상담 게시판에 남겨 주세요. 베타 운영 중 접수된 의견을 바탕으로 보완하겠습니다.</div>
+    </div>
+    <button class="feedback-btn" onclick="goPanel('board')">상담 게시판에 남기기</button>
+  </div>
+</div>
+
+
+<script>
+  /* ── 패널/탭 전환 ── */
+  function resetHome(e) {
+    e.preventDefault();
+    const homeBtn = document.querySelector('.nav-tab');
+    switchPanel('home', homeBtn);
+  }
+
+
+  function goPanel(id) {
+    switchPanel(id, null);
+  }
+  function switchPanel(id, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById('panel-' + id);
+    if (!panel) return;
+    panel.classList.add('active');
+    document.querySelectorAll('.nav-tab, .nav-group-btn, .nav-dropdown-item, .sidebar-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('[data-panel="' + id + '"]').forEach(b => {
+      b.classList.add('active');
+      const group = b.closest('.nav-group');
+      if (group) group.querySelector('.nav-group-btn').classList.add('active');
+    });
+    document.querySelectorAll('.nav-group').forEach(g => g.classList.remove('open'));
+    document.querySelectorAll('.nav-group-btn').forEach(b => b.classList.remove('open'));
+    if (id === 'board') loadBoard();
+    if (id === 'faq') loadFaqData();
+    if (id === 'notice') loadNotice();
+    if (id === 'patent') renderPatentHistory();
+  }
+  function switchSearch(type) {
+    document.getElementById('search-doi-panel').style.display   = type === 'doi'   ? '' : 'none';
+    document.getElementById('search-title-panel').style.display = type === 'title' ? '' : 'none';
+    document.getElementById('stab-doi').classList.toggle('active',   type === 'doi');
+    document.getElementById('stab-title').classList.toggle('active', type === 'title');
+    document.getElementById('sr-area').innerHTML = '';
+    document.getElementById('result-area').innerHTML = '';
+  }
+
+  /* ── 유틸 ── */
+  function stripTags(s) { return String(s).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function isHiddenValue(v) {
+    const s = String(v || '').trim().toUpperCase();
+    return ['N','NO','FALSE','0','숨김','비공개','비노출'].includes(s);
+  }
+  function formatDate(parts) {
+    if (!parts || !parts.length) return null;
+    const p = parts[0]; if (!p || !p[0]) return null;
+    const y = p[0];
+    const m = p[1] ? String(p[1]).padStart(2,'0') : '00';
+    const d = p[2] ? String(p[2]).padStart(2,'0') : '00';
+    return y + '-' + m + (p[2] ? '-' + d : '');
+  }
+  function detectIntl(authors) {
+    if (!authors || !authors.length) return null;
+    const KR = [/korea/i, /한국/i, /대한민국/i, /republic of korea/i, /south korea/i];
+    let hasAffil = false;
+    for (const a of authors) {
+      const aff = (a.affiliation || []).map(x => x.name || '').join(' ').trim();
+      if (!aff) continue;
+      hasAffil = true;
+      if (!KR.some(p => p.test(aff))) return true;
+    }
+    return hasAffil ? false : null;
+  }
+
+  let _copyData = {};
+
+  /* ── DOI 검색 ── */
+  function fillDoi(doi) { document.getElementById('doi-input').value = doi; doSearchDoi(); }
+  async function doSearchDoi() {
+    const raw = document.getElementById('doi-input').value.trim();
+    if (!raw) { document.getElementById('doi-input').focus(); return; }
+    const doi = raw.replace(/^https?:\/\/doi\.org\//i,'').replace(/^doi:\s*/i,'').trim();
+    const btn = document.getElementById('doi-btn');
+    document.getElementById('sr-area').innerHTML = '';
+    setLoading('result-area', 'CrossRef에서 조회 중...'); btn.disabled = true;
+    try {
+      const res = await fetch('https://api.crossref.org/works/' + encodeURIComponent(doi));
+      if (res.status === 404) throw {type:'notfound'};
+      if (!res.ok) throw {type:'network'};
+      const json = await res.json();
+      renderResult(json.message, doi);
+    } catch(e) { showError('result-area', e); }
+    btn.disabled = false;
+  }
+
+  /* ── 제목 검색 ── */
+  async function doSearchTitle() {
+    const q = document.getElementById('title-input').value.trim();
+    if (!q) { document.getElementById('title-input').focus(); return; }
+    const btn = document.getElementById('title-btn');
+    document.getElementById('result-area').innerHTML = '';
+    setLoading('sr-area', '논문 검색 중...'); btn.disabled = true;
+    try {
+      const url = 'https://api.crossref.org/works?query.title=' + encodeURIComponent(q) + '&rows=10&select=DOI,title,container-title,published,author,type,volume,issue';
+      const res = await fetch(url);
+      if (!res.ok) throw {type:'network'};
+      const json = await res.json();
+      const items = json.message.items || [];
+      if (!items.length) { document.getElementById('sr-area').innerHTML = '<div class="error-card"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>검색 결과가 없습니다. 다른 키워드로 시도해보세요.</p></div>'; btn.disabled = false; return; }
+      renderSearchList(items);
+    } catch(e) { showError('sr-area', e); }
+    btn.disabled = false;
+  }
+
+  function renderSearchList(items) {
+    let html = '<div class="search-results"><div class="sr-header"><span class="sr-title">검색 결과 ' + items.length + '건 — 해당 논문을 선택하세요</span></div><div class="sr-list">';
+    items.forEach((w, i) => {
+      const title   = esc(stripTags((w.title && w.title[0]) || '제목 없음'));
+      const journal = esc((w['container-title'] && w['container-title'][0]) || '');
+      const doi     = esc(w.DOI || '');
+      const parts   = w.published?.['date-parts'] || w['published-print']?.['date-parts'] || w['published-online']?.['date-parts'];
+      const year    = (parts && parts[0] && parts[0][0]) ? parts[0][0] : '';
+      const vol     = w.volume ? w.volume + '권' : '';
+      const iss     = w.issue  ? w.issue + '호'  : '';
+      const type    = w.type === 'journal-article' ? '학술지 논문' : (w.type || '');
+      html += '<div class="sr-item" onclick="selectItem(' + i + ')">'
+        + '<div class="sr-item-title">' + title + '</div>'
+        + '<div class="sr-item-meta">'
+        + (journal ? '<span>' + journal + '</span>' : '')
+        + (year ? '<span>' + year + '</span>' : '')
+        + (vol || iss ? '<span>' + [vol, iss].filter(Boolean).join(' ') + '</span>' : '')
+        + (doi ? '<span style="font-family:monospace;font-size:11px;">' + doi + '</span>' : '')
+        + '</div></div>';
+    });
+    html += '</div></div>';
+    document.getElementById('sr-area').innerHTML = html;
+    window._srItems = items;
+  }
+
+  async function selectItem(idx) {
+    const w = window._srItems[idx];
+    const doi = w.DOI;
+    if (!doi) return;
+    setLoading('result-area', '상세 정보 조회 중...');
+    document.getElementById('sr-area').innerHTML = '';
+    try {
+      const res = await fetch('https://api.crossref.org/works/' + encodeURIComponent(doi));
+      if (!res.ok) throw {type:'network'};
+      const json = await res.json();
+      renderResult(json.message, doi);
+    } catch(e) { showError('result-area', e); }
+  }
+
+  /* ── 결과 렌더 ── */
+  function renderResult(w, doi) {
+    const title       = stripTags((w.title && w.title[0]) || '제목 정보 없음');
+    const journal     = (w['container-title'] && w['container-title'][0]) || null;
+    const publisher   = w.publisher || null;
+    const volume      = w.volume || null;
+    const issue       = w.issue  || null;
+    const pageRaw     = w.page   || null;
+    const pageStart   = pageRaw ? pageRaw.split('-')[0].trim() : null;
+    const pageEnd     = pageRaw ? (pageRaw.split('-')[1] || '').trim() || null : null;
+    const type        = w.type || null;
+    const typeLabels  = {'journal-article':'학술지 논문','proceedings-article':'학술대회 논문','book-chapter':'도서 챕터','book':'단행본','report':'보고서','dataset':'데이터셋'};
+    const issnRaw     = w.ISSN || [];
+    const issnType    = w['issn-type'] || [];
+    const pubDate     = formatDate(w['published-print']?.['date-parts']) || formatDate(w.published?.['date-parts']) || null;
+    const onlineDate  = formatDate(w['published-online']?.['date-parts']) || null;
+    const acceptDate  = formatDate(w.accepted?.['date-parts']) || null;
+    const cited       = w['is-referenced-by-count'] ?? null;
+    const refs        = w['references-count'] ?? null;
+    const authors     = w.author || [];
+    const isIntl      = detectIntl(authors);
+    const abstractRaw = w.abstract ? stripTags(w.abstract) : null;
+    const subjects    = w.subject || [];
+
+    /* ISSN html */
+    function issnHtml() {
+      if (!issnRaw.length) return '<span class="cell-v muted">정보 없음</span>';
+      return '<span class="cell-v">' + issnRaw.join(';') + '</span>';
+    }
+
+    /* 저자 html — 주저자/공동저자/교신저자 3줄 */
+    function authorsHtml() {
+      if (!authors.length) return '<div class="rc-grid">' + cell('주저자', '-') + cell('공동저자', '-') + cell('교신저자', '-') + '</div>';
+      const getName = a => [(a.given||''),(a.family||'')].filter(Boolean).join(' ') || a.name || '';
+      const isCorr  = a => !!(a.role && String(a.role).toLowerCase().includes('corresponding')) || !!(a.suffix && String(a.suffix).includes('†'));
+      const firstA  = authors.find((a,i) => a.sequence === 'first' || i === 0);
+      const corrA   = authors.find(a => isCorr(a));
+      const coList  = authors.filter((a,i) => !(a.sequence === 'first' || i === 0) && !isCorr(a));
+      const firstName  = firstA ? esc(getName(firstA))  : '-';
+      const corrName   = corrA  ? esc(getName(corrA))   : '-';
+      const coNames    = coList.length ? coList.map(a => esc(getName(a))).join(', ') : '-';
+      return '<div class="rc-grid">'
+        + cell('주저자 (제1저자)', firstName, true)
+        + cell('공동저자', coNames, true)
+        + cell('교신저자', corrName, true)
+        + '</div>';
+    }
+
+    /* 복사 데이터 */
+    _copyData = { title, journal, publisher, volume, issue, pageStart, pageEnd, pubDate, onlineDate, acceptDate, doi,
+      issn: issnRaw.join(', '), cited, abstract: abstractRaw || '',
+      authors: authors.map(a => [(a.given||''),(a.family||'')].filter(Boolean).join(' ') || a.name||'').filter(Boolean) };
+
+    /* 렌더 */
+    let h = '<div class="result-card">';
+
+    /* 헤더 */
+    h += '<div class="rc-header"><div class="rc-header-left"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>조회 완료 — CrossRef 데이터베이스</span></div>';
+    h += '<button class="copy-btn" id="copy-btn" onclick="copyInfo()"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>서지정보 복사</button></div>';
+
+    /* 권/호 확정 여부 판단 */
+    const hasVolume  = !!volume;
+    const hasIssue   = !!issue;
+    const hasPage    = !!pageStart;
+    const hasPrint   = !!(w['published-print']?.['date-parts']);
+    const isOnlineOnly = !hasPrint && !!onlineDate;
+
+    // 성과 인정 가능 여부: 권 또는 호 중 하나라도 있으면 확정 (페이지 무관)
+    const canRegister = hasVolume || hasIssue;
+
+    /* 제목 */
+    h += '<div class="rc-title-area">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">'
+      + '<div class="rc-title">' + esc(title) + '</div>'
+      + '<button class="cell-copy-btn" style="font-size:11px;padding:3px 10px;flex-shrink:0;margin-top:4px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + title.replace(/"/g,'&quot;') + '">복사</button>'
+      + '</div>'
+      + '</div>';
+
+    /* 성과 인정 가능 여부 배너 */
+    if (!canRegister) {
+      const warnMsg = '<strong>성과 등록 전 확인 필요</strong><br>권(호) 정보가 확정되지 않았습니다. Accepted, Early Access, Preprint 등 출판 전 단계의 논문은 성과로 인정되지 않습니다. <strong>권 또는 호가 확정된 최종 출판 이후</strong> 등록하시기 바랍니다.';
+      h += '<div class="warn-banner"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><p>' + warnMsg + '</p></div>';
+    } else {
+      h += '<div class="ok-banner"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><p>권/호 및 출판 정보가 확정된 논문입니다. 성과 등록이 가능합니다.</p></div>';
+    }
+
+    h += '<div class="rc-body">';
+
+    /* 성과 정보 섹션 */
+    h += '<div class="rc-section"><div class="rc-section-head">성과 정보</div><div class="rc-grid">';
+
+    /* 행1: 게재 페이지(좌) / SCIE 구분(우) */
+    const pageVal = pageStart ? esc(pageStart) + (pageEnd ? ' ~ ' + esc(pageEnd) : '') : '-';
+    h += cell('게재 페이지', pageVal);
+    h += cell('SCIE 구분', '<span class="cell-v muted">직접 입력 필요</span>');
+
+    /* 행3: 학술지명 — full */
+    h += cell('학술지명', journal ? esc(journal) : '-', true);
+
+    /* 행4: 권(호)(좌) / ISSN(우) */
+    const volVal = (volume || issue) ? (volume ? esc(volume) : '') + (issue ? '(' + esc(issue) + ')' : '') : '-';
+    h += cell('권(호)', volVal);
+    h += cell('ISSN', issnHtml(), false, issnRaw.join(';'));
+
+    /* 행6: 학술지 구분 좌 / 학술지 게재일자 우 */
+    const gaejae = acceptDate || onlineDate;
+    h += cell('학술지 구분', '<span class="cell-v muted">직접 입력 필요</span>');
+    h += cell('학술지 게재일자', gaejae ? esc(gaejae) + (onlineDate && !acceptDate ? ' <span style="font-size:11px;color:var(--tm);">(온라인)</span>' : '') : '-');
+
+    /* 행7: 발행국가 좌 / 학술지 출판일자 우 */
+    h += cell('발행국가', '<span class="cell-v muted">직접 입력 필요</span>');
+    h += cell('학술지 출판일자', pubDate ? esc(pubDate) : '-');
+
+    /* 행8: 국제공동연구(좌) / DOI(우) */
+    if (isIntl !== null) {
+      h += cell('국제공동연구', isIntl ? '<span class="badge b-intl">예</span>' : '<span class="badge b-dom">아니오</span>');
+    } else {
+      h += cell('국제공동연구', '<span class="cell-v muted">소속 데이터 없음</span>');
+    }
+    h += cell('DOI 번호', '<span class="cell-v mono">' + esc(doi) + '</span>', false, doi);
+
+    h += '</div></div>'; /* rc-grid, rc-section */
+
+    /* 초록 */
+    if (abstractRaw) {
+      h += '<div class="rc-section"><div class="rc-section-head">초록</div>'
+        + '<div class="abstract-area"><div class="abstract-text clamped" id="abs-text">' + esc(abstractRaw) + '</div>'
+        + '<div style="display:flex;gap:8px;margin-top:6px;">'
+        + '<button class="abstract-toggle" onclick="toggleAbstract(this)">전체 보기 ▾</button>'
+        + '<button class="cell-copy-btn" style="font-size:12px;padding:3px 10px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + abstractRaw.replace(/"/g,'&quot;') + '">복사</button>'
+        + '</div></div></div>';
+    }
+
+    /* 저자 섹션 — 주저자/공동저자/교신저자 3줄 */
+    h += '<div class="rc-section"><div class="rc-section-head">저자</div>' + authorsHtml() + '</div>';
+
+    /* 주제 키워드 */
+    if (subjects.length) {
+      h += '<div class="rc-section"><div class="rc-section-head">주제 분야</div>'
+        + '<div class="kw-wrap">' + subjects.map(s => '<span class="kw">' + esc(s) + '</span>').join('') + '</div></div>';
+    }
+
+    h += '</div></div>'; /* rc-body, result-card */
+    document.getElementById('result-area').innerHTML = h;
+    saveHistory(title, doi);
+    renderHistory();
+  }
+
+  function cell(label, val, full, copyVal) {
+    const rawCopy = copyVal !== undefined ? copyVal : val.replace(/<[^>]*>/g,'').trim();
+    const skip = !rawCopy || rawCopy.includes('직접 입력') || rawCopy.includes('데이터 없음') || rawCopy === '-';
+    const valHtml = skip
+      ? '<div class="cell-v">' + val + '</div>'
+      : '<div class="cell-copy"><div class="cell-v">' + val + '</div><button class="cell-copy-btn" onclick="copySingleCell(this, this.dataset.v)" data-v="' + rawCopy.replace(/"/g, '&quot;') + '">복사</button></div>';
+    return '<div class="rc-cell' + (full ? ' full' : '') + '"><div class="cell-l">' + label + '</div>' + valHtml + '</div>';
+  }
+
+  function copySingleCell(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '완료!';
+      btn.style.color = 'var(--success)';
+      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+    });
+  }
+
+  function toggleAbstract(btn) {
+    const el = document.getElementById('abs-text');
+    el.classList.toggle('clamped');
+    btn.textContent = el.classList.contains('clamped') ? '전체 보기 ▾' : '접기 ▴';
+  }
+
+  function setLoading(id, msg) {
+    document.getElementById(id).innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>' + msg + '</span></div>';
+  }
+
+  function showError(id, e) {
+    const msg = (e && e.type === 'notfound')
+      ? '<strong>DOI를 찾을 수 없습니다.</strong><br>CrossRef에 등록되지 않았거나 오타가 있을 수 있습니다.'
+      : '<strong>조회 중 오류가 발생했습니다.</strong><br>네트워크 연결을 확인하거나 잠시 후 다시 시도해 주세요.';
+    document.getElementById(id).innerHTML = '<div class="error-card"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>' + msg + '</p></div>';
+  }
+
+  function copyInfo() {
+    const d = _copyData;
+    if (!d.title) return;
+    const lines = [
+      '논문명: '         + d.title,
+      d.journal    ? '학술지명: '       + d.journal   : '',
+      d.publisher  ? '발행기관: '       + d.publisher : '',
+      d.volume     ? '볼륨(권): '       + d.volume    : '',
+      d.issue      ? '호: '             + d.issue     : '',
+      d.pageStart  ? '게재 시작 페이지: ' + d.pageStart : '',
+      d.pageEnd    ? '게재 종료 페이지: ' + d.pageEnd   : '',
+      d.issn       ? 'ISSN: '           + d.issn      : '',
+      d.acceptDate ? '학술지 게재일자: '  + d.acceptDate : (d.onlineDate ? '학술지 게재일자: ' + d.onlineDate + ' (온라인)' : ''),
+      d.pubDate    ? '학술지 출판일자: '  + d.pubDate   : '',
+      d.authors && d.authors.length ? '저자: ' + d.authors.join(', ') : '',
+      'DOI: https://doi.org/' + d.doi,
+      d.abstract   ? '\n초록:\n' + d.abstract : '',
+    ].filter(Boolean).join('\n');
+    navigator.clipboard.writeText(lines).then(() => {
+      const btn = document.getElementById('copy-btn');
+      if (!btn) return;
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg> 복사됨';
+      btn.style.color = 'var(--success)';
+      setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+    });
+  }
+
+  /* ── 상담 게시판 ── */
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBCsY6YcI0g1fFfsWOlOYUKdNS4V13pZ8yZBuZPudESiCCcj_0dPYCskPEx7J7ywJ0/exec';
+  let _allItems = [];
+  let _curCat   = '전체';
+  let _boardCategories = ['성과등록', '시스템 오류', '개선의견', '기타'];
+  let _boardCategoriesLoaded = false;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('w-question').addEventListener('input', function() {
+      document.getElementById('q-count').textContent = this.value.length;
+    });
+  });
+
+
+
+  async function loadBoard() {
+    await loadBoardCategories();
+    const el = document.getElementById('board-list');
+    el.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>불러오는 중...</span></div>';
+    if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      el.innerHTML = '<div class="board-empty">⚙️ Apps Script URL을 설정해주세요.<br><span style="font-size:12px;color:var(--tm);">google_apps_script.js를 배포한 후 HTML의 APPS_SCRIPT_URL을 교체하세요.</span></div>';
+      return;
+    }
+    try {
+      const res  = await fetch(APPS_SCRIPT_URL + '?action=list');
+      const json = await res.json();
+      _allItems  = json.items || [];
+      renderBoard();
+    } catch(e) {
+      el.innerHTML = '<div class="board-empty">불러오기 실패. 잠시 후 다시 시도해주세요.</div>';
+    }
+  }
+
+  async function loadBoardCategories(force) {
+    if (_boardCategoriesLoaded && !force) {
+      renderBoardCategoryControls();
+      return;
+    }
+    try {
+      const res = await fetch(APPS_SCRIPT_URL + '?action=boardCategory');
+      const json = await res.json();
+      const items = (json.items || []).filter(c => c && c.category && !isHiddenValue(c.use));
+      if (items.length) {
+        _boardCategories = items.map(c => c.category);
+      }
+    } catch(e) {
+      // 카테고리 시트를 불러오지 못하면 기본값 사용
+    }
+    _boardCategoriesLoaded = true;
+    renderBoardCategoryControls();
+  }
+
+  function renderBoardCategoryControls() {
+    const filterBar = document.getElementById('cat-filters');
+    if (filterBar) {
+      const cats = ['전체', ..._boardCategories];
+      filterBar.innerHTML = '';
+      cats.forEach((c, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'cat-btn' + ((_curCat === c || (!_curCat && i === 0)) ? ' active' : '');
+        btn.textContent = c;
+        btn.addEventListener('click', () => filterCat(c, btn));
+        filterBar.appendChild(btn);
+      });
+      if (!cats.includes(_curCat)) _curCat = '전체';
+    }
+
+    const select = document.getElementById('w-category');
+    if (select) {
+      const current = select.value;
+      select.innerHTML = '';
+      _boardCategories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+      if (_boardCategories.includes(current)) select.value = current;
+    }
+  }
+
+  let _boardKeyword = '';
+
+  function boardSearch(val) {
+    _boardKeyword = val.trim().toLowerCase();
+    if (_boardKeyword) {
+      _curCat = '전체';
+      document.querySelectorAll('#cat-filters .cat-btn').forEach(b => b.classList.remove('active'));
+      const firstBtn = document.querySelector('#cat-filters .cat-btn');
+      if (firstBtn) firstBtn.classList.add('active');
+    }
+    renderBoard();
+  }
+
+  function filterCat(cat, btn) {
+    _curCat = cat;
+    _boardKeyword = '';
+    document.getElementById('board-search').value = '';
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderBoard();
+  }
+
+  function renderBoard() {
+    const el = document.getElementById('board-list');
+    let items = _curCat === '전체' ? _allItems : _allItems.filter(x => x.category === _curCat);
+    if (_boardKeyword) {
+      items = items.filter(x =>
+        x.question.toLowerCase().includes(_boardKeyword) ||
+        x.answer.toLowerCase().includes(_boardKeyword)
+      );
+    }
+    if (!items.length) {
+      el.innerHTML = '<div class="board-empty">등록된 질문이 없습니다.<br>첫 번째로 질문해보세요!</div>';
+      return;
+    }
+    el.innerHTML = items.map(q => {
+      const answeredCls = q.answered ? 'answered' : '';
+      return '<div class="q-card" onclick="toggleCard(this)">'
+        + '<div class="q-card-head">'
+        + '<span class="q-cat ' + answeredCls + '">' + esc(q.category) + '</span>'
+        + '<div style="flex:1;">'
+        + '<div class="q-title">' + esc(q.question.length > 80 ? q.question.slice(0,80)+'…' : q.question) + '</div>'
+        + '<div class="q-meta"><span>' + esc(q.nickname||'익명') + '</span><span>' + esc(q.date) + '</span></div>'
+        + '</div>'
+        + '<span class="q-status ' + (q.answered?'done':'wait') + '">' + (q.answered ? '✓ 답변완료' : '대기중') + '</span>'
+        + '</div>'
+        + (q.answered ? '<div class="q-answer"><div class="q-answer-label">담당자 답변</div>' + esc(q.answer) + '</div>' : '')
+        + '</div>';
+    }).join('');
+  }
+
+  function toggleCard(el) {
+    el.classList.toggle('open');
+  }
+
+  async function openWriteModal() {
+    await loadBoardCategories();
+    document.getElementById('write-modal').style.display = 'flex';
+    document.getElementById('w-question').focus();
+  }
+  function closeWriteModal() {
+    document.getElementById('write-modal').style.display = 'none';
+    document.getElementById('w-question').value = '';
+    document.getElementById('w-nickname').value = '';
+    document.getElementById('q-count').textContent = '0';
+  }
+
+  async function submitQuestion() {
+    const q   = document.getElementById('w-question').value.trim();
+    const cat = document.getElementById('w-category').value;
+    const nick= document.getElementById('w-nickname').value.trim() || '익명';
+    if (!q) { document.getElementById('w-question').focus(); return; }
+    if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      alert('Apps Script URL을 먼저 설정해주세요.');
+      return;
+    }
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true; btn.textContent = '제출 중...';
+    try {
+      const params = new URLSearchParams({ action:'submit', category:cat, nickname:nick, question:q });
+      await fetch(APPS_SCRIPT_URL + '?' + params.toString());
+      closeWriteModal();
+      await loadBoard();
+    } catch(e) {
+      alert('제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
+    btn.disabled = false; btn.textContent = '제출';
+  }
+
+  /* ── FAQ — Sheets에서 불러오기 ── */
+  let _faqData = [];
+  let _faqCat  = '전체';
+
+  async function loadFaqData() {
+    try {
+      const res  = await fetch(APPS_SCRIPT_URL + '?action=faq');
+      const json = await res.json();
+      _faqData = (json.items || []).filter(f => !isHiddenValue(f.use));
+      buildFaqFilters();
+      renderFAQ();
+    } catch(e) {
+      document.getElementById('faq-list').innerHTML = '<div class="board-empty">FAQ를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</div>';
+    }
+  }
+
+  function buildFaqFilters() {
+    const cats = ['전체', ...new Set(_faqData.map(f => f.cat).filter(Boolean))];
+    const bar  = document.getElementById('faq-filter-bar');
+    bar.innerHTML = '';
+    cats.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn' + (i===0?' active':'');
+      btn.textContent = c;
+      btn.addEventListener('click', () => faqFilter(c, btn));
+      bar.appendChild(btn);
+    });
+  }
+
+  let _faqKeyword = '';
+
+  function faqSearch(val) {
+    _faqKeyword = val.trim().toLowerCase();
+    // 검색 시 필터 전체로 리셋
+    if (_faqKeyword) {
+      _faqCat = '전체';
+      document.querySelectorAll('#faq-filter-bar .cat-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('#faq-filter-bar .cat-btn').classList.add('active');
+    }
+    renderFAQ();
+  }
+
+  function faqFilter(cat, btn) {
+    _faqCat = cat;
+    _faqKeyword = '';
+    document.getElementById('faq-search').value = '';
+    document.querySelectorAll('#faq-filter-bar .cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderFAQ();
+  }
+
+  function renderFAQ() {
+    let items = _faqCat === '전체' ? _faqData : _faqData.filter(f => f.cat === _faqCat);
+    if (_faqKeyword) {
+      items = items.filter(f =>
+        f.q.toLowerCase().includes(_faqKeyword) ||
+        f.a.toLowerCase().includes(_faqKeyword)
+      );
+    }
+    if (!items.length) {
+      document.getElementById('faq-list').innerHTML = '<div class="board-empty">해당 카테고리에 FAQ가 없습니다.</div>';
+      return;
+    }
+    document.getElementById('faq-list').innerHTML = items.map(f =>
+      '<div class="faq-item"><div class="faq-q"><span class="faq-badge">' + esc(f.cat||'기타') + '</span>'
+      + '<span class="faq-question">' + esc(f.q) + '</span>'
+      + '<span class="faq-toggle">+</span></div>'
+      + '<div class="faq-answer">' + esc(f.a) + '</div>'
+      + '</div>'
+    ).join('');
+    document.querySelectorAll('.faq-q').forEach(q => {
+      q.addEventListener('click', () => q.parentElement.classList.toggle('open'));
+    });
+  }
+
+
+
+  
+
+  /* ── AI 챗봇 ── */
+  let   FAQ_CONTEXT = '학습데이터를 불러오는 중입니다...';
+
+  // Sheets에서 학습데이터 로드
+  async function loadFaqFromSheets() {
+    try {
+      const res  = await fetch(APPS_SCRIPT_URL + '?action=faq');
+      const json = await res.json();
+      if (json.items && json.items.length) {
+        FAQ_CONTEXT = json.items.map(f =>
+          (f.cat ? '[' + f.cat + '] ' : '') + f.q + ' → ' + f.a
+        ).join('\n');
+      } else {
+        FAQ_CONTEXT = '(학습데이터 없음)';
+      }
+    } catch(e) {
+      FAQ_CONTEXT = '(학습데이터 로드 실패)';
+    }
+  }
+
+  function getSystemPrompt() {
+    return '당신은 국가연구개발 성과입력 전문 AI 상담사입니다.\n'
+      + '국가연구개발혁신법, IRIS 시스템, 연구개발 성과관리(논문·특허·보고서 등록, 기여율, 사사표기 등) 관련 질문에 친절하고 정확하게 한국어로 답변하세요.\n'
+      + '\n'
+      + '[중요 규칙]\n'
+      + '1. 법 조항 번호(예: 제16조, 제32조)나 구체적인 수치를 언급할 때는 확실하지 않으면 절대 쓰지 마세요.\n'
+      + '2. 법령이 불확실한 경우 "관련 법령을 직접 확인하시거나 콜센터로 문의하세요"라고 안내하세요.\n'
+      + '3. 모르는 내용은 모른다고 솔직하게 말하세요. 추측으로 답변하지 마세요.\n'
+      + '4. 모든 답변 마지막에는 "※ 정확한 내용은 성과조사콜센터(042-869-6677)로 확인하시기 바랍니다."를 추가하세요.';
+  }
+
+  let chatHistory = [];
+  const MAX_HISTORY_MSGS = 10;   // AI에게 함께 보낼 '최근 대화' 개수 = 10개 (질문5 + 답변5 = 5번 주고받기). 토큰 과다 사용 방지용
+
+  // "새 대화" — 기록을 모두 지우고 처음 인사말 상태로 되돌림
+  function resetChat() {
+    chatHistory = [];
+    const area = document.getElementById('chat-messages');
+    if (area) {
+      area.innerHTML = '<div class="chat-msg bot"><div class="chat-bubble bot">안녕하세요! 국가연구개발 성과입력 AI 상담 챗봇입니다.<br>성과 등록·관리 관련 궁금한 점을 질문해 주세요 😊</div></div>';
+    }
+    const input = document.getElementById('chat-input');
+    if (input) input.focus();
+  }
+
+  async function sendChat() {
+    const input = document.getElementById('chat-input');
+    const q = input.value.trim();
+    if (!q) return;
+
+    input.value = '';
+    input.style.height = '44px';
+
+    appendChatMsg('user', q);
+    const typingId = appendTyping();
+
+    const btn = document.getElementById('chat-send-btn');
+    btn.disabled = true;
+
+    // 이번 질문을 대화 기록에 추가
+    chatHistory.push({ role: 'user', parts: [{ text: q }] });
+
+    // 최근 대화만 잘라서 보냄 (비용 관리). 반드시 '사용자' 발화로 시작하도록 정리
+    let toSend = chatHistory.slice(-MAX_HISTORY_MSGS);
+    while (toSend.length && toSend[0].role !== 'user') toSend.shift();
+
+    try {
+      // Apps Script 프록시 → Gemini File Search(RAG). '이전 대화 포함'해서 POST로 전송
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        // text/plain 으로 보내야 Apps Script가 CORS 오류 없이 받습니다
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'chat', history: toSend })
+      });
+      const data = await res.json();
+      const answer = data.answer || (data.error && data.error.includes('429') ? '요청이 너무 많습니다. 1분 후 다시 시도해 주세요.' : data.error) || '답변을 가져오지 못했습니다. 다시 시도해 주세요.';
+      removeTyping(typingId);
+      appendChatMsg('bot', answer);
+      chatHistory.push({ role: 'model', parts: [{ text: answer }] });
+    } catch(e) {
+      removeTyping(typingId);
+      appendChatMsg('bot', '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      chatHistory.pop();   // 답을 못 받은 이번 질문은 기록에서 되돌려 다음 대화가 꼬이지 않게 함
+    }
+    btn.disabled = false;
+    input.focus();
+  }
+
+  function appendChatMsg(role, text) {
+    const area = document.getElementById('chat-messages');
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg ' + role;
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble ' + role;
+    bubble.innerHTML = esc(text).replace(/\n/g, '<br>');
+    wrap.appendChild(bubble);
+    area.appendChild(wrap);
+    area.scrollTop = area.scrollHeight;
+  }
+
+  function appendTyping() {
+    const area = document.getElementById('chat-messages');
+    const id = 'typing-' + Date.now();
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg bot';
+    wrap.id = id;
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble bot';
+    bubble.innerHTML = '<div class="chat-typing"><span></span><span></span><span></span></div>';
+    wrap.appendChild(bubble);
+    area.appendChild(wrap);
+    area.scrollTop = area.scrollHeight;
+    return id;
+  }
+
+  function removeTyping(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  // 입력창 자동 높이 조절
+  document.addEventListener('DOMContentLoaded', () => {
+    const ta = document.getElementById('chat-input');
+    if (ta) {
+      ta.addEventListener('input', function() {
+        this.style.height = '44px';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+    }
+  });
+
+  /* ── 공지사항 (Sheets notice 시트) ── */
+  let _noticeData = [];
+  let _noticeCat = '전체';
+  let _noticeKeyword = '';
+
+  async function loadNotice() {
+    const el = document.getElementById('notice-list');
+    el.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>불러오는 중...</span></div>';
+    try {
+      const res  = await fetch(APPS_SCRIPT_URL + '?action=notice');
+      const json = await res.json();
+      _noticeData = (json.items || []).filter(n => !isHiddenValue(n.use));
+      buildNoticeFilters();
+      renderNotice();
+    } catch(e) {
+      el.innerHTML = '<div class="board-empty">공지사항을 불러오지 못했습니다.</div>';
+    }
+  }
+
+  function buildNoticeFilters() {
+    const cats = ['전체', ...new Set(_noticeData.map(n => n.cat).filter(Boolean))];
+    const bar = document.getElementById('notice-filter-bar');
+    if (!bar) return;
+    bar.innerHTML = '';
+    cats.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn' + (_noticeCat === c ? ' active' : '');
+      btn.textContent = c;
+      btn.addEventListener('click', () => noticeFilter(c, btn));
+      bar.appendChild(btn);
+    });
+    if (!cats.includes(_noticeCat)) _noticeCat = '전체';
+  }
+
+  function noticeSearch(val) {
+    _noticeKeyword = val.trim().toLowerCase();
+    if (_noticeKeyword) {
+      _noticeCat = '전체';
+      document.querySelectorAll('#notice-filter-bar .cat-btn').forEach(b => b.classList.remove('active'));
+      const firstBtn = document.querySelector('#notice-filter-bar .cat-btn');
+      if (firstBtn) firstBtn.classList.add('active');
+    }
+    renderNotice();
+  }
+
+  function noticeFilter(cat, btn) {
+    _noticeCat = cat;
+    _noticeKeyword = '';
+    const input = document.getElementById('notice-search');
+    if (input) input.value = '';
+    document.querySelectorAll('#notice-filter-bar .cat-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderNotice();
+  }
+
+  function renderNotice() {
+    const el = document.getElementById('notice-list');
+    let items = _noticeCat === '전체' ? _noticeData : _noticeData.filter(n => n.cat === _noticeCat);
+    if (_noticeKeyword) {
+      items = items.filter(n =>
+        String(n.title || '').toLowerCase().includes(_noticeKeyword) ||
+        String(n.content || '').toLowerCase().includes(_noticeKeyword) ||
+        String(n.attachTitle || '').toLowerCase().includes(_noticeKeyword)
+      );
+    }
+    if (!items.length) {
+      el.innerHTML = '<div class="board-empty">등록된 공지사항이 없습니다.</div>';
+      return;
+    }
+
+    const frag = document.createDocumentFragment();
+    items.forEach(n => {
+      let attachHtml = '';
+      if (n.attachLink) {
+        const links  = String(n.attachLink || '').split('|').map(s => s.trim()).filter(Boolean);
+        const titles = String(n.attachTitle || '').split('|').map(s => s.trim()).filter(Boolean);
+        attachHtml = links.map((url, i) => {
+          const t = titles[i] || ('첨부파일 ' + (i + 1));
+          return '<a class="notice-attach" href="' + esc(url) + '" target="_blank" rel="noopener" style="margin-right:8px;margin-bottom:6px;">'
+            + '<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+            + esc(t) + '</a>';
+        }).join('');
+      }
+      const bodyHtml = (n.content || attachHtml)
+        ? '<div class="notice-body">'
+          + (n.content ? '<p>' + esc(n.content).replace(/\n/g,'<br>') + '</p>' : '')
+          + attachHtml
+          + '</div>'
+        : '';
+      const div = document.createElement('div');
+      div.className = 'notice-item';
+      div.innerHTML = '<div class="notice-head">'
+        + '<div class="notice-head-left">'
+        + '<span class="notice-badge">' + esc(n.cat || '공지') + '</span>'
+        + '<span class="notice-title">' + esc(n.title || '') + '</span>'
+        + '</div>'
+        + '<span class="notice-date">' + esc(n.date || '') + '</span>'
+        + '<span class="notice-toggle">+</span>'
+        + '</div>'
+        + bodyHtml;
+      div.querySelector('.notice-head').addEventListener('click', () => div.classList.toggle('open'));
+      frag.appendChild(div);
+    });
+    el.innerHTML = '';
+    el.appendChild(frag);
+  }
+
+  /* ── 최근 조회 기록 (로컬 스토리지) ── */
+  const HISTORY_KEY = 'doi_history';
+  const MAX_HISTORY = 10;
+
+  function saveHistory(title, doi) {
+    try {
+      const hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      const filtered = hist.filter(h => h.doi !== doi);
+      filtered.unshift({ title, doi, date: new Date().toLocaleDateString('ko-KR') });
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(filtered.slice(0, MAX_HISTORY)));
+      renderHistory();
+    } catch(e) {}
+  }
+
+  function renderHistory() {
+    const el = document.getElementById('history-list');
+    if (!el) return;
+    try {
+      const hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      if (!hist.length) {
+        el.innerHTML = '<p style="font-size:13px;color:var(--tm);padding:8px 0;">조회 기록이 없습니다.</p>';
+        return;
+      }
+      el.innerHTML = hist.map(h =>
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);gap:10px;">'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:13px;color:var(--tp);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(h.title) + '</div>'
+        + '<div style="font-size:11px;color:var(--tm);font-family:monospace;">' + esc(h.doi) + '</div>'
+        + '</div>'
+        + '<div style="display:flex;gap:6px;flex-shrink:0;">'
+        + '<button onclick="fillDoi(\'' + esc(h.doi) + '\')" style="font-size:11px;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--accent);">다시 조회</button>'
+        + '</div>'
+        + '</div>'
+      ).join('');
+    } catch(e) {}
+  }
+
+
+  /* ── 특허 조회 ── */
+  let _patentSearchType = 'word';
+
+  function switchPatentSearch(type) {
+    _patentSearchType = type;
+    ['application','registration','word'].forEach(t => {
+      document.getElementById('patent-' + t + '-panel').style.display = t === type ? '' : 'none';
+      document.getElementById('ptab-' + t).classList.toggle('active', t === type);
+    });
+    document.getElementById('patent-result-area').innerHTML = '';
+  }
+
+  async function searchPatent() {
+    const inputMap = {
+      application: 'patent-app-input',
+      registration: 'patent-reg-input',
+      word: 'patent-word-input'
+    };
+    const query = document.getElementById(inputMap[_patentSearchType]).value.trim();
+    if (!query) return;
+
+    const area = document.getElementById('patent-result-area');
+    area.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>KIPRIS에서 조회 중...</span></div>';
+
+    // 국가코드 가져오기
+    let country = 'KR';
+    if (_patentSearchType === 'application') {
+      const sel = document.getElementById('patent-app-country');
+      if (sel) country = sel.value;
+    } else if (_patentSearchType === 'registration') {
+      const sel = document.getElementById('patent-reg-country');
+      if (sel) country = sel.value;
+    }
+
+    try {
+      const url = APPS_SCRIPT_URL + '?action=patent&type=' + _patentSearchType + '&query=' + encodeURIComponent(query) + '&country=' + country;
+      const res  = await fetch(url);
+      const json = await res.json();
+
+      if (json.error) {
+        area.innerHTML = '<div class="board-empty">⚠️ ' + esc(json.error) + '</div>';
+        return;
+      }
+      if (!json.items || !json.items.length) {
+        area.innerHTML = '<div class="board-empty">검색 결과가 없습니다. 번호 형식을 확인해 주세요.</div>';
+        return;
+      }
+
+      area.innerHTML = json.items.map(p => renderPatentCard(p)).join('');
+      if (json.items.length) {
+        const first = json.items[0];
+        const saveQuery = first.applicationNumber || query;
+        const saveType  = first.applicationNumber ? 'application' : _patentSearchType;
+        savePatentHistory(first.title || query, saveQuery, saveType);
+      }
+    } catch(e) {
+      area.innerHTML = '<div class="board-empty">조회 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>';
+    }
+  }
+
+  function renderPatentCard(p) {
+    const cell = (label, val) => {
+      if (!val) return '';
+      const safeVal = val.replace(/"/g, '&quot;');
+      return '<div class="patent-cell">'
+        + '<div class="patent-cell-l">' + label + '</div>'
+        + '<div class="patent-cell-v">' + esc(val)
+        + '<button class="cell-copy-btn" onclick="copySingleCell(this, this.dataset.v)" data-v="' + safeVal + '">복사</button>'
+        + '</div></div>';
+    };
+    const cellFull = (label, val) => {
+      if (!val) return '';
+      const safeVal = val.replace(/"/g, '&quot;');
+      return '<div class="patent-cell patent-full">'
+        + '<div class="patent-cell-l">' + label + '</div>'
+        + '<div class="patent-cell-v">' + esc(val)
+        + '<button class="cell-copy-btn" onclick="copySingleCell(this, this.dataset.v)" data-v="' + safeVal + '">복사</button>'
+        + '</div></div>';
+    };
+
+    const titleSafe = (p.title || '제목 없음').replace(/"/g, '&quot;');
+    const patentCopyText = [
+      '발명의 명칭: ' + (p.title || ''),
+      p.applicationNumber ? '출원번호: ' + p.applicationNumber : '',
+      p.applicationDate ? '출원일: ' + p.applicationDate : '',
+      p.registrationNumber ? '등록번호: ' + p.registrationNumber : '',
+      p.registrationDate ? '등록일: ' + p.registrationDate : '',
+      p.applicant ? '출원인: ' + p.applicant : '',
+      p.inventors ? '발명자: ' + p.inventors : '',
+      p.status ? '상태: ' + p.status : ''
+    ].filter(Boolean).join('\n');
+    const patentCopySafe = esc(patentCopyText);
+    return '<div class="patent-card">'
+      + '<div class="patent-header">'
+      + '<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>'
+      + '<span>KIPRIS 데이터베이스</span>'
+      + '<span style="flex:1;"></span>'
+      + (p.status ? '<span class="patent-status" style="margin-left:0;">' + esc(p.status) + '</span>' : '')
+      + '<button class="copy-btn" style="margin-left:8px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + patentCopySafe + '"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>특허정보 복사</button>'
+      + '</div>'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 20px 8px;">'
+      + '<div class="patent-title" style="padding:0;flex:1;">' + esc(p.title || '제목 없음') + '</div>'
+      + '<button class="cell-copy-btn" style="flex-shrink:0;margin-top:2px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + titleSafe + '">복사</button>'
+      + '</div>'
+      + '<div class="patent-grid">'
+      + cell('출원번호', p.applicationNumber)
+      + cell('출원일', p.applicationDate)
+      + cell('등록번호', p.registrationNumber)
+      + cell('등록일', p.registrationDate)
+      + cell('출원인', p.applicant)
+      + cell('발명자', p.inventors || '-')
+      + '</div>'
+      + '</div>';
+  }
+
+
+  /* ── 특허 최근 조회 기록 ── */
+  const PATENT_HISTORY_KEY = 'patent_history';
+
+  function savePatentHistory(title, query, type) {
+    try {
+      const hist = JSON.parse(localStorage.getItem(PATENT_HISTORY_KEY) || '[]');
+      const filtered = hist.filter(h => !(h.query === query && h.type === type));
+      filtered.unshift({ title, query, type, date: new Date().toLocaleDateString('ko-KR') });
+      localStorage.setItem(PATENT_HISTORY_KEY, JSON.stringify(filtered.slice(0, 10)));
+      renderPatentHistory();
+    } catch(e) {}
+  }
+
+  function renderPatentHistory() {
+    const el = document.getElementById('patent-history-list');
+    if (!el) return;
+    try {
+      const hist = JSON.parse(localStorage.getItem(PATENT_HISTORY_KEY) || '[]');
+      if (!hist.length) {
+        el.innerHTML = '<p style="font-size:13px;color:var(--tm);padding:8px 0;">조회 기록이 없습니다.</p>';
+        return;
+      }
+      const typeLabel = { application: '출원번호', registration: '등록번호', word: '발명명칭' };
+      el.innerHTML = hist.map(h =>
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);gap:10px;">'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:13px;color:var(--tp);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(h.title) + '</div>'
+        + '<div style="font-size:11px;color:var(--tm);">' + (typeLabel[h.type] || '') + ' · ' + esc(h.query) + '</div>'
+        + '</div>'
+        + '<button onclick="reSearchPatent(this.dataset.q, this.dataset.t)" data-q="' + esc(h.query) + '" data-t="' + h.type + '" style="font-size:11px;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--accent);flex-shrink:0;">다시 조회</button>'
+        + '</div>'
+      ).join('');
+    } catch(e) {}
+  }
+
+  function reSearchPatent(query, type) {
+    switchPatentSearch(type);
+    const inputMap = { application: 'patent-app-input', registration: 'patent-reg-input', word: 'patent-word-input' };
+    const el = document.getElementById(inputMap[type]);
+    if (el) { el.value = query; searchPatent(); }
+  }
+
+
+  /* ── 드롭다운 토글 ── */
+  function toggleDropdown(btn) {
+    const group = btn.closest('.nav-group');
+    const isOpen = group.classList.contains('open');
+    // 모든 드롭다운 닫기
+    document.querySelectorAll('.nav-group').forEach(g => g.classList.remove('open'));
+    document.querySelectorAll('.nav-group-btn').forEach(b => b.classList.remove('open'));
+    if (!isOpen) {
+      group.classList.add('open');
+      btn.classList.add('open');
+    }
+  }
+
+  // 외부 클릭 시 드롭다운 닫기
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.nav-group')) {
+      document.querySelectorAll('.nav-group').forEach(g => g.classList.remove('open'));
+      document.querySelectorAll('.nav-group-btn').forEach(b => b.classList.remove('open'));
+    }
+  });
+
+</script>
+<script>
+/* ── UI 보강 스크립트 (2026-07) ─────────────────────────────
+   원본 기능 코드는 위쪽 스크립트 블록에 그대로 있고, 여기는
+   모바일 메뉴·키보드 접근성만 담당합니다. 백엔드 연동과 무관. */
+(function () {
+  var btn = document.getElementById('nav-toggle');
+  var nav = document.getElementById('main-nav');
+
+  function closeMenu() {
+    if (!nav) return;
+    nav.classList.remove('open');
+    if (btn) {
+      btn.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-label', '메뉴 열기');
+    }
+  }
+
+  if (btn && nav) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = nav.classList.toggle('open');
+      btn.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
+    });
+
+    // 메뉴 항목을 고르면 자동으로 닫기 (그룹 펼침 버튼은 제외)
+    nav.addEventListener('click', function (e) {
+      if (e.target.closest('.nav-tab, .nav-dropdown-item')) closeMenu();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!nav.contains(e.target) && !btn.contains(e.target)) closeMenu();
+    });
+  }
+
+  // 홈 카드: div라서 Tab 이동이 안 되던 문제 → Enter/Space로 실행
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var card = e.target.closest && e.target.closest('.home-card');
+    if (card) { e.preventDefault(); card.click(); }
+  });
+
+  // ESC — 열린 메뉴와 질문 모달 닫기
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    closeMenu();
+    var m = document.getElementById('write-modal');
+    if (m && m.style.display === 'flex' && typeof closeWriteModal === 'function') closeWriteModal();
+  });
+})();
+</script>
+
+</body>
+</html>
