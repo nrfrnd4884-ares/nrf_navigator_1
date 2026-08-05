@@ -90,7 +90,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 .rc-header { background: var(--success-bg); border-bottom: 1px solid var(--success-border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
 .rc-header-left { display: flex; align-items: center; gap: 7px; }
 .rc-header-left svg { width: 16px; height: 16px; fill: none; stroke: var(--success); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-.rc-header-left span { font-size: 12px; font-weight: 600; color: var(--success); }
+.rc-header-left span { font-size: 13px; font-weight: 600; color: var(--success); }
 .copy-btn { font-size: 12px; color: var(--ts); background: var(--surface); border: 1px solid var(--border2); border-radius: var(--r2); padding: 5px 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.12s; }
 .copy-btn:hover { background: var(--accent-l); color: var(--accent); border-color: var(--accent-m); }
 .copy-btn svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -119,7 +119,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 .rc-cell.full { grid-column: 1 / -1; border-right: none; }
 .rc-cell:last-child, .rc-cell:nth-last-child(2):not(.full) { border-bottom: none; }
 .rc-cell:last-child.full { border-bottom: none; }
-.cell-l { font-size: 11px; font-weight: 600; color: var(--tm); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+.cell-l { font-size: 13px; font-weight: 600; color: var(--tm); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
 .cell-v { font-size: 13px; color: var(--tp); word-break: break-word; }
 .cell-v.mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); }
 .cell-v.muted { color: var(--tm); font-style: italic; }
@@ -290,13 +290,13 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
   .patent-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); margin-bottom: 12px; overflow: hidden; }
   .patent-header { background: var(--teal-l); border-bottom: 1px solid var(--teal-m); padding: 12px 20px; display: flex; align-items: center; gap: 8px; }
   .patent-header svg { width: 16px; height: 16px; fill: none; stroke: var(--teal); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-  .patent-header span { font-size: 12px; font-weight: 600; color: var(--teal); }
+  .patent-header span { font-size: 13px; font-weight: 600; color: var(--teal); }
   .patent-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--teal-l); color: var(--teal); font-weight: 600; margin-left: auto; }
   .patent-title { font-size: 16px; font-weight: 600; color: var(--tp); padding: 16px 20px 8px; line-height: 1.5; }
   .patent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 0 20px 16px; }
   .patent-cell { padding: 8px 0; border-bottom: 1px solid var(--border); }
   .patent-cell:nth-last-child(-n+2) { border-bottom: none; }
-  .patent-cell-l { font-size: 11px; color: var(--tm); font-weight: 600; margin-bottom: 3px; }
+  .patent-cell-l { font-size: 13px; color: var(--tm); font-weight: 600; margin-bottom: 3px; }
   .patent-cell-v { font-size: 13px; color: var(--tp); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .patent-full { grid-column: 1 / -1; }
 
@@ -2418,7 +2418,30 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     const showForDoi = doiPanelOn && doiBar && doiBar.style.display === 'flex';
     const showForPat = patPanelOn && patBar && patBar.style.display === 'flex';
     fb.style.display = (showForDoi || showForPat) ? 'inline-flex' : 'none';
+    adjustFloatingClearBtn();
   }
+
+  /* 고정 버튼이 하단 피드백 영역과 겹치지 않도록 위치를 조정한다.
+     스크롤을 끝까지 내리면 피드백 박스의 '상담 게시판에 남기기' 버튼과 자리가 겹치므로,
+     피드백 영역이 화면에 올라온 만큼 버튼을 위로 밀어 올린다. */
+  function adjustFloatingClearBtn() {
+    const fb = document.getElementById('floating-clear-btn');
+    const footer = document.querySelector('.feedback-footer');
+    if (!fb || !footer || fb.style.display === 'none') return;
+    const top = footer.getBoundingClientRect().top;      // 피드백 영역의 화면상 위치
+    const risen = window.innerHeight - top;              // 화면 아래에서 올라온 높이
+    fb.style.bottom = (risen > 0 ? risen + 16 : 24) + 'px';
+  }
+
+  // 스크롤·창 크기 변화에 맞춰 위치 갱신 (버벅임 방지를 위해 프레임 단위로 처리)
+  let _fbTick = false;
+  function _onScrollAdjust() {
+    if (_fbTick) return;
+    _fbTick = true;
+    requestAnimationFrame(function () { adjustFloatingClearBtn(); _fbTick = false; });
+  }
+  window.addEventListener('scroll', _onScrollAdjust, { passive: true });
+  window.addEventListener('resize', _onScrollAdjust);
 
   //  현재 보고 있는 패널(논문/특허)의 검색 결과를 초기화
   function clearActiveSearch() {
@@ -2538,7 +2561,8 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
          align-items:center;gap:7px;font-size:13px;font-weight:600;
          padding:11px 18px;border:none;border-radius:26px;cursor:pointer;
          background:var(--accent);color:#fff;
-         box-shadow:0 4px 16px rgba(0,0,0,0.22);font-family:inherit;">
+         box-shadow:0 4px 16px rgba(0,0,0,0.22);font-family:inherit;
+         transition:bottom 0.15s ease;">
   <svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
   결과 초기화
 </button>
