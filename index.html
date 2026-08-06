@@ -113,12 +113,13 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 .rc-section { border-bottom: 1px solid var(--border); }
 .rc-section:last-child { border-bottom: none; }
 .rc-section-head { padding: 10px 20px; background: var(--surface2); font-size: 13px; font-weight: 600; color: var(--tm); text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 1px solid var(--border); }
-.rc-grid { display: grid; grid-template-columns: 1fr 1fr; }
+/* 표 선 긋기 — 칸 번호(nth-child)로 마지막 열을 찾는 방식은
+   '전체폭 칸'이 섞이면 번호와 실제 열 위치가 어긋나 선이 뒤죽박죽된다.
+   그래서 모든 칸에 오른쪽·아래 선을 긋고, 표 바깥으로 나가는 선은
+   음수 여백으로 밀어내어 카드가 잘라내도록 한다. (항목 수가 몇 개든 항상 정확) */
+.rc-grid { display: grid; grid-template-columns: 1fr 1fr; margin-right: -1px; margin-bottom: -1px; }
 .rc-cell { padding: 11px 20px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
-.rc-cell:nth-child(2n) { border-right: none; }
-.rc-cell.full { grid-column: 1 / -1; border-right: none; }
-.rc-cell:last-child, .rc-cell:nth-last-child(2):not(.full) { border-bottom: none; }
-.rc-cell:last-child.full { border-bottom: none; }
+.rc-cell.full { grid-column: 1 / -1; }
 .cell-l { font-size: 13px; font-weight: 600; color: var(--tm); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
 .cell-v { font-size: 13px; color: var(--tp); word-break: break-word; }
 .cell-v.mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); }
@@ -173,8 +174,8 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
   .input-row { flex-direction: column; }
   .s-btn { width: 100%; justify-content: center; }
   .rc-grid { grid-template-columns: 1fr; }
-  .rc-cell { border-right: none !important; }
-  .rc-cell:nth-last-child(2):not(.full) { border-bottom: 1px solid var(--border); }
+  .rc-cell, .patent-cell { border-right: none !important; }   /* 1열이므로 세로선 불필요 */
+  .patent-grid { grid-template-columns: 1fr; }
   .stat-banner { flex-wrap: wrap; }
   .stat-cell { min-width: 120px; }
 }
@@ -293,9 +294,11 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
   .patent-header span { font-size: 13px; font-weight: 600; color: var(--teal); }
   .patent-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--teal-l); color: var(--teal); font-weight: 600; margin-left: auto; }
   .patent-title { font-size: 16px; font-weight: 600; color: var(--tp); padding: 16px 20px 8px; line-height: 1.5; }
-  .patent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 0 20px 16px; }
-  .patent-cell { padding: 8px 0; border-bottom: 1px solid var(--border); }
-  .patent-cell:nth-last-child(-n+2) { border-bottom: none; }
+  /* 논문 결과 표(.rc-grid)와 동일한 격자 방식.
+     모든 칸에 오른쪽·아래 선을 긋고, 바깥으로 나가는 선은 음수 여백으로 밀어 카드가 잘라낸다. */
+  .patent-grid { display: grid; grid-template-columns: 1fr 1fr;
+                 border-top: 1px solid var(--border); margin-right: -1px; margin-bottom: -1px; }
+  .patent-cell { padding: 11px 20px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
   .patent-cell-l { font-size: 13px; color: var(--tm); font-weight: 600; margin-bottom: 3px; }
   .patent-cell-v { font-size: 13px; color: var(--tp); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .patent-full { grid-column: 1 / -1; }
@@ -611,12 +614,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
   /* 결과 카드: 폭이 넓어진 만큼 칸 수를 늘려 빈 공간 제거 */
   @media (min-width: 1100px) {
     .rc-grid     { grid-template-columns: repeat(3, 1fr); }
-    .rc-cell:nth-child(2n)  { border-right: 1px solid var(--border); }
-    .rc-cell:nth-child(3n)  { border-right: none; }
-    .rc-cell:last-child, .rc-cell:nth-last-child(2):not(.full),
-    .rc-cell:nth-last-child(3):not(.full) { border-bottom: none; }
-    .rc-cell.full { border-right: none; }
-    .patent-grid { grid-template-columns: repeat(3, 1fr); column-gap: 24px; }
+    .patent-grid { grid-template-columns: repeat(3, 1fr); }
     .check-list  { grid-template-columns: repeat(3, 1fr); }
   }
 
@@ -1509,22 +1507,41 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
       return '<span class="cell-v">' + issnRaw.join(';') + '</span>';
     }
 
-    /* 저자 html — 주저자/공동저자/교신저자 3줄 */
+    /* 저자 html — 논문에 실린 순서대로 한 명씩 나열한다.
+       ※ IRIS 는 저자를 순번대로 한 명씩 등록하므로, 여러 명을 쉼표로 묶어 두면
+         복사한 뒤 손으로 잘라내야 한다. 그래서 1명 = 1칸 = 복사버튼 1개 구조로 둔다. */
     function authorsHtml() {
-      if (!authors.length) return '<div class="rc-grid">' + cell('주저자', '-') + cell('공동저자', '-') + cell('교신저자', '-') + '</div>';
+      if (!authors.length) {
+        return '<div class="rc-grid">'
+          + cell('저자', '<span class="cell-v muted">저자 정보 없음</span>')
+          + cell('교신저자', '<span class="cell-v muted">원문 확인 필요</span>')
+          + fillCells(2)
+          + '</div>';
+      }
       const getName = a => [(a.given||''),(a.family||'')].filter(Boolean).join(' ') || a.name || '';
       const isCorr  = a => !!(a.role && String(a.role).toLowerCase().includes('corresponding')) || !!(a.suffix && String(a.suffix).includes('†'));
-      const firstA  = authors.find((a,i) => a.sequence === 'first' || i === 0);
       const corrA   = authors.find(a => isCorr(a));
-      const coList  = authors.filter((a,i) => !(a.sequence === 'first' || i === 0) && !isCorr(a));
-      const firstName  = firstA ? esc(getName(firstA))  : '-';
-      const corrName   = corrA  ? esc(getName(corrA))   : '-';
-      const coNames    = coList.length ? coList.map(a => esc(getName(a))).join(', ') : '-';
-      return '<div class="rc-grid">'
-        + cell('주저자 (제1저자)', firstName, true)
-        + cell('공동저자', coNames, true)
-        + cell('교신저자', corrName, true)
-        + '</div>';
+
+      let out = '<div class="rc-grid">';
+      let n = 0;                       // 실제로 그린 칸 수 (빈 칸 계산용)
+      authors.forEach(function (a, i) {
+        const nm = getName(a);
+        if (!nm) return;
+        // 역할 표시: 제1저자(첫 번째) / 교신저자(제공되는 드문 경우)
+        const roles = [];
+        if (a.sequence === 'first' || i === 0) roles.push('제1저자');
+        if (isCorr(a)) roles.push('교신저자');
+        const label = (i + 1) + (roles.length ? ' · ' + roles.join(' · ') : '');
+        out += cell(label, esc(nm), false, nm);
+        n++;
+      });
+      // CrossRef는 교신저자 정보를 거의 제공하지 않는다(스키마 5.5부터 지원 시작, 보급 전).
+      //  못 찾았을 때는 '-' 대신 어디서 확인할지 알려준다.
+      if (!corrA) {
+        out += cell('교신저자', '<span class="cell-v muted">원문 확인 필요</span>');
+        n++;
+      }
+      return out + fillCells(n) + '</div>';
     }
 
     /* 복사 데이터 */
@@ -1570,35 +1587,40 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     /* 성과 정보 섹션 */
     h += '<div class="rc-section"><div class="rc-section-head">성과 정보</div><div class="rc-grid">';
 
-    /* 행1: 게재 페이지(좌) / SCIE 구분(우) */
-    const pageVal = pageStart ? esc(pageStart) + (pageEnd ? ' ~ ' + esc(pageEnd) : '') : '-';
-    h += cell('게재 페이지', pageVal);
+    /* ※ IRIS 는 시작/종료 페이지, 권/호를 각각 다른 칸에 입력하므로 나누어 보여준다.
+         (합쳐서 보여주면 복사 후 손으로 잘라내야 함) */
+
+    /* 행1: 게재 시작 페이지 / 게재 종료 페이지 / SCIE 구분 */
+    h += cell('게재 시작 페이지', pageStart ? esc(pageStart) : '-');
+    h += cell('게재 종료 페이지', pageEnd   ? esc(pageEnd)   : '-');
     h += cell('SCIE 구분', '<span class="cell-v muted">직접 입력 필요</span>');
 
-    /* 행3: 학술지명 — full */
-    h += cell('학술지명', journal ? esc(journal) : '-', true);
+    /* ※ 전체폭 칸을 쓰지 않는다. 전체폭 칸이 있으면 그 줄에 세로선이 생기지 않고
+         복사 버튼도 멀리 떨어져 다른 칸과 어긋나 보이기 때문. */
 
-    /* 행4: 권(호)(좌) / ISSN(우) */
-    const volVal = (volume || issue) ? (volume ? esc(volume) : '') + (issue ? '(' + esc(issue) + ')' : '') : '-';
-    h += cell('권(호)', volVal);
-    h += cell('ISSN', issnHtml(), false, issnRaw.join(';'));
+    /* 행2: 학술지명 / 권 / 호 */
+    h += cell('학술지명', journal ? esc(journal) : '-');
+    h += cell('권', volume ? esc(volume) : '-');
+    h += cell('호', issue  ? esc(issue)  : '-');
 
-    /* 행6: 학술지 구분 좌 / 학술지 게재일자 우 */
+    /* 행3: ISSN / 학술지 구분 / 학술지 게재일자 */
     const gaejae = acceptDate || onlineDate;
+    h += cell('ISSN', issnHtml(), false, issnRaw.join(';'));
     h += cell('학술지 구분', '<span class="cell-v muted">직접 입력 필요</span>');
     h += cell('학술지 게재일자', gaejae ? esc(gaejae) + (onlineDate && !acceptDate ? ' <span style="font-size:11px;color:var(--tm);">(온라인)</span>' : '') : '-');
 
-    /* 행7: 발행국가 좌 / 학술지 출판일자 우 */
-    h += cell('발행국가', '<span class="cell-v muted">직접 입력 필요</span>');
+    /* 행4: 학술지 출판일자 / 발행국가 / 국제공동연구 */
     h += cell('학술지 출판일자', pubDate ? esc(pubDate) : '-');
-
-    /* 행8: 국제공동연구(좌) / DOI(우) */
+    h += cell('발행국가', '<span class="cell-v muted">직접 입력 필요</span>');
     if (isIntl !== null) {
       h += cell('국제공동연구', isIntl ? '<span class="badge b-intl">예</span>' : '<span class="badge b-dom">아니오</span>');
     } else {
       h += cell('국제공동연구', '<span class="cell-v muted">소속 데이터 없음</span>');
     }
+
+    /* 행5: DOI + 빈 칸 (총 13칸이라 마지막 줄을 빈 칸으로 채움) */
     h += cell('DOI 번호', '<span class="cell-v mono">' + esc(doi) + '</span>', false, doi);
+    h += fillCells(13);
 
     h += '</div></div>'; /* rc-grid, rc-section */
 
@@ -1627,9 +1649,16 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     renderHistory();
   }
 
+  /* 3열 기준으로 모자란 칸을 빈 칸으로 채운다.
+     칸이 없는 자리는 선도 그려지지 않아 표가 끊겨 보이므로, 빈 칸을 넣어 격자를 완성한다. */
+  function fillCells(count) {
+    const rem = count % 3;
+    return rem === 0 ? '' : '<div class="rc-cell"></div>'.repeat(3 - rem);
+  }
+
   function cell(label, val, full, copyVal) {
     const rawCopy = copyVal !== undefined ? copyVal : val.replace(/<[^>]*>/g,'').trim();
-    const skip = !rawCopy || rawCopy.includes('직접 입력') || rawCopy.includes('데이터 없음') || rawCopy === '-';
+    const skip = !rawCopy || rawCopy.includes('직접 입력') || rawCopy.includes('원문 확인') || rawCopy.includes('데이터 없음') || rawCopy === '-';
     const valHtml = skip
       ? '<div class="cell-v">' + val + '</div>'
       : '<div class="cell-copy"><div class="cell-v">' + val + '</div><button class="cell-copy-btn" onclick="copySingleCell(this, this.dataset.v)" data-v="' + rawCopy.replace(/"/g, '&quot;') + '">복사</button></div>';
@@ -2273,6 +2302,8 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
         return;
       }
 
+      // 검색할 때 고른 국가를 각 결과에 붙여 둔다 (IRIS '출원/등록 국가' 칸에 필요)
+      json.items.forEach(function (it) { it.country = country; });
       _patentItems = json.items;      // 페이지 나누기용으로 결과 보관
       resetPage('patent');
       renderPatentList();
@@ -2297,26 +2328,45 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
                    + pagerHtml('patent', _patentItems.length);
   }
 
-  function renderPatentCard(p) {
-    const cell = (label, val) => {
-      if (!val) return '';
-      const safeVal = val.replace(/"/g, '&quot;');
-      return '<div class="patent-cell">'
-        + '<div class="patent-cell-l">' + label + '</div>'
-        + '<div class="patent-cell-v">' + esc(val)
-        + '<button class="cell-copy-btn" onclick="copySingleCell(this, this.dataset.v)" data-v="' + safeVal + '">복사</button>'
-        + '</div></div>';
-    };
-    const cellFull = (label, val) => {
-      if (!val) return '';
-      const safeVal = val.replace(/"/g, '&quot;');
-      return '<div class="patent-cell patent-full">'
-        + '<div class="patent-cell-l">' + label + '</div>'
-        + '<div class="patent-cell-v">' + esc(val)
-        + '<button class="cell-copy-btn" onclick="copySingleCell(this, this.dataset.v)" data-v="' + safeVal + '">복사</button>'
-        + '</div></div>';
-    };
+  // 국가코드를 IRIS 입력용 이름으로 바꿔준다 (모르는 코드는 코드 그대로)
+  function countryName(code) {
+    if (!code) return '';
+    const map = { KR: '한국', US: '미국', EP: '유럽', JP: '일본', CN: '중국', WO: 'PCT' };
+    return map[code] ? code + ' ' + map[code] : code;
+  }
 
+  /* 특허 표 만들기 — 값이 없는 항목은 칸을 만들지 않으므로 개수가 매번 다르다.
+     그대로 두면 마지막 줄에 빈 자리가 생겨 선이 끊기므로, 빈 칸을 채워 격자를 완성한다. */
+  function patentGrid(p) {
+    const items = [
+      ['출원번호',            p.applicationNumber],
+      ['출원일',              p.applicationDate],
+      ['등록번호',            p.registrationNumber],
+      ['등록일',              p.registrationDate],
+      ['출원인',              p.applicant],
+      ['발명자',              p.inventors || '-'],
+      // IRIS 특허 입력 화면에 있는 칸들
+      ['출원/등록 국가',       countryName(p.country)],
+      ['지식재산권 공개번호',   p.openNumber],
+      ['지식재산권 공개일자',   p.openDate]
+    ].filter(function (it) { return !!it[1]; });
+
+    let out = '';
+    items.forEach(function (it) {
+      const safeVal = String(it[1]).replace(/"/g, '&quot;');
+      out += '<div class="patent-cell">'
+           + '<div class="patent-cell-l">' + it[0] + '</div>'
+           + '<div class="patent-cell-v">' + esc(String(it[1]))
+           + '<button class="cell-copy-btn" onclick="copySingleCell(this, this.dataset.v)" data-v="' + safeVal + '">복사</button>'
+           + '</div></div>';
+    });
+    const rem = items.length % 3;
+    if (rem !== 0) out += '<div class="patent-cell"></div>'.repeat(3 - rem);
+    return '<div class="patent-grid">' + out + '</div>';
+  }
+
+  function renderPatentCard(p) {
+    // 표 만들기는 patentGrid() 가 담당한다 (빈 칸 채우기 포함)
     const titleSafe = (p.title || '제목 없음').replace(/"/g, '&quot;');
     const patentCopyText = [
       '발명의 명칭: ' + (p.title || ''),
@@ -2326,6 +2376,9 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
       p.registrationDate ? '등록일: ' + p.registrationDate : '',
       p.applicant ? '출원인: ' + p.applicant : '',
       p.inventors ? '발명자: ' + p.inventors : '',
+      p.country ? '출원/등록 국가: ' + countryName(p.country) : '',
+      p.openNumber ? '지식재산권 공개번호: ' + p.openNumber : '',
+      p.openDate ? '지식재산권 공개일자: ' + p.openDate : '',
       p.status ? '상태: ' + p.status : ''
     ].filter(Boolean).join('\n');
     const patentCopySafe = esc(patentCopyText);
@@ -2341,14 +2394,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
       + '<div class="patent-title" style="padding:0;flex:1;">' + esc(p.title || '제목 없음') + '</div>'
       + '<button class="cell-copy-btn" style="flex-shrink:0;margin-top:2px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + titleSafe + '">복사</button>'
       + '</div>'
-      + '<div class="patent-grid">'
-      + cell('출원번호', p.applicationNumber)
-      + cell('출원일', p.applicationDate)
-      + cell('등록번호', p.registrationNumber)
-      + cell('등록일', p.registrationDate)
-      + cell('출원인', p.applicant)
-      + cell('발명자', p.inventors || '-')
-      + '</div>'
+      + patentGrid(p)
       + '</div>';
   }
 
