@@ -1,0 +1,39 @@
+name: 🐛 버그
+description: 버그 또는 예상과 다른 동작을 작성해 주세요.
+title: "[Bug] "
+labels: ["bug"]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 문제 설명
+      description: 어떤 문제가 발생했는지 설명해 주세요.
+      placeholder: "예: 검색 버튼을 눌러도 검색 결과가 표시되지 않습니다."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 재현 방법
+      description: 문제를 재현할 수 있는 순서를 작성해주세요.
+      placeholder: |
+        1. 검색 페이지로 이동
+        2. 검색어 입력
+        3. 검색 버튼 클릭
+        4. 오류 발생
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 예상 동작
+      description: 원래는 어떻게 동작해야 했나요?
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 추가 정보
+      description: 로그, 스크린샷 등 참고할 내용이 있다면 첨부해 주세요.
