@@ -136,6 +136,10 @@
     updateFloatingClearBtn();
   }
 
+  // 논문 조회 화면은 제목 탭을 기본 탭으로 초기화한다.
+  // 패널 HTML에는 숨김 클래스를 두지 않고, 활성 탭 상태만 여기서 제어한다.
+  window.appMarkupReady.then(() => switchSearch('title'));
+
   /* ── 유틸 ── */
   function stripTags(s) { return String(s).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); }
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }

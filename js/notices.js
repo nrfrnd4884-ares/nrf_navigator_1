@@ -7,7 +7,7 @@
     const el = document.getElementById('notice-list');
     el.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>불러오는 중...</span></div>';
     try {
-      const res  = await fetch(APPS_SCRIPT_URL + '?action=notice');
+      const res  = await fetch(APP_CONFIG.appsScriptUrl + '?action=notice');
       const json = await res.json();
       _noticeData = (json.items || []).filter(n => !isHiddenValue(n.use));
       buildNoticeFilters();

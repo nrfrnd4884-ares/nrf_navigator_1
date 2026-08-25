@@ -11,7 +11,7 @@
   ];
   scripts.forEach(name => {
     const script = document.createElement('script');
-    script.src = 'js/' + name;
+    script.src = 'js/' + name + '?v=20260825-2';
     script.async = false;
     document.head.appendChild(script);
   });

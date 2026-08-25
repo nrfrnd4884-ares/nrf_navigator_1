@@ -12,6 +12,10 @@
     updateFloatingClearBtn();
   }
 
+  // 특허 조회 화면은 발명 명칭 탭을 기본 탭으로 초기화한다.
+  // 패널 HTML에는 숨김 클래스를 두지 않고, 활성 탭 상태만 여기서 제어한다.
+  window.appMarkupReady.then(() => switchPatentSearch('word'));
+
   async function searchPatent() {
     const inputMap = {
       application: 'patent-app-input',
@@ -37,16 +41,37 @@
     }
 
     try {
-      const url = APPS_SCRIPT_URL + '?action=patent&type=' + _patentSearchType + '&query=' + encodeURIComponent(query) + '&country=' + country;
-      const res  = await fetch(url);
-      const json = await res.json();
+      const apiBase = window.APP_CONFIG && window.APP_CONFIG.patentApiUrl;
+      if (!apiBase || apiBase === 'YOUR_PATENT_API_URL_HERE') {
+        throw new Error('특허 API 주소가 설정되지 않았습니다.');
+      }
+      const params = new URLSearchParams({
+        action: 'patent',
+        type: _patentSearchType,
+        query,
+        country
+      });
+      const res = await fetch(apiBase + '?' + params.toString());
+      const body = await res.text();
+      let json;
+      try {
+        json = JSON.parse(body);
+      } catch (_) {
+        throw new Error('특허 API가 JSON이 아닌 응답을 반환했습니다. (HTTP ' + res.status + ')');
+      }
+      if (!res.ok) {
+        throw new Error(json.error || json.message || '특허 API 요청 실패 (HTTP ' + res.status + ')');
+      }
 
       if (json.error) {
         area.innerHTML = '<div class="board-empty">⚠️ ' + esc(json.error) + '</div>';
         return;
       }
       if (!json.items || !json.items.length) {
-        area.innerHTML = '<div class="board-empty">검색 결과가 없습니다. 번호 형식을 확인해 주세요.</div>';
+        const detail = json.message || json.reason || '';
+        area.innerHTML = '<div class="board-empty">검색 결과가 없습니다. 번호 형식을 확인해 주세요.'
+          + (detail ? '<br><span class="api-error-detail">' + esc(detail) + '</span>' : '')
+          + '</div>';
         return;
       }
 
@@ -62,6 +87,7 @@
         savePatentHistory(first.title || query, saveQuery, saveType);
       }
     } catch(e) {
+      console.error('Patent search failed:', e);
       area.innerHTML = '<div class="board-empty">조회 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>';
     }
   }
@@ -83,8 +109,7 @@
     return map[code] ? code + ' ' + map[code] : code;
   }
 
-  /* 특허 표 만들기 — 값이 없는 항목은 칸을 만들지 않으므로 개수가 매번 다르다.
-     그대로 두면 마지막 줄에 빈 자리가 생겨 선이 끊기므로, 빈 칸을 채워 격자를 완성한다. */
+  /* 특허 표 만들기 — 특허 전용 정보 구조를 유지한다. */
   function patentGrid(p) {
     const items = [
       ['출원번호',            p.applicationNumber],
@@ -93,7 +118,6 @@
       ['등록일',              p.registrationDate],
       ['출원인',              p.applicant],
       ['발명자',              p.inventors || '-'],
-      // IRIS 특허 입력 화면에 있는 칸들
       ['출원/등록 국가',       countryName(p.country)],
       ['지식재산권 공개번호',   p.openNumber],
       ['지식재산권 공개일자',   p.openDate]
@@ -114,8 +138,8 @@
   }
 
   function renderPatentCard(p) {
-    // 표 만들기는 patentGrid() 가 담당한다 (빈 칸 채우기 포함)
-    const titleSafe = (p.title || '제목 없음').replace(/"/g, '&quot;');
+    const title = p.title || '제목 없음';
+    const titleSafe = title.replace(/"/g, '&quot;');
     const patentCopyText = [
       '발명의 명칭: ' + (p.title || ''),
       p.applicationNumber ? '출원번호: ' + p.applicationNumber : '',
@@ -134,13 +158,13 @@
       + '<div class="patent-header">'
       + '<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>'
       + '<span>KIPRIS 데이터베이스</span>'
-      + '<span style="flex:1;"></span>'
-      + (p.status ? '<span class="patent-status" style="margin-left:0;">' + esc(p.status) + '</span>' : '')
-      + '<button class="copy-btn" style="margin-left:8px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + patentCopySafe + '"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>특허정보 복사</button>'
+      + '<span class="patent-header-spacer"></span>'
+      + (p.status ? '<span class="patent-status">' + esc(p.status) + '</span>' : '')
+      + '<button class="copy-btn patent-copy-btn" onclick="copySingleCell(this, this.dataset.v)" data-v="' + patentCopySafe + '"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>특허정보 복사</button>'
       + '</div>'
-      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 20px 8px;">'
-      + '<div class="patent-title" style="padding:0;flex:1;">' + esc(p.title || '제목 없음') + '</div>'
-      + '<button class="cell-copy-btn" style="flex-shrink:0;margin-top:2px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + titleSafe + '">복사</button>'
+      + '<div class="patent-title-row">'
+      + '<div class="patent-title">' + esc(title) + '</div>'
+      + '<button class="cell-copy-btn patent-title-copy" onclick="copySingleCell(this, this.dataset.v)" data-v="' + titleSafe + '">복사</button>'
       + '</div>'
       + patentGrid(p)
       + '</div>';

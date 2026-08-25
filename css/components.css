@@ -116,21 +116,24 @@
   .notice-item.open .notice-body { display: block; }
   .notice-item.open .notice-toggle { transform: rotate(45deg); }
 
+
   /* ── 특허 결과 ── */
   .patent-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); margin-bottom: 12px; overflow: hidden; }
   .patent-header { background: var(--teal-l); border-bottom: 1px solid var(--teal-m); padding: 12px 20px; display: flex; align-items: center; gap: 8px; }
   .patent-header svg { width: 16px; height: 16px; fill: none; stroke: var(--teal); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .patent-header span { font-size: 13px; font-weight: 600; color: var(--teal); }
-  .patent-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--teal-l); color: var(--teal); font-weight: 600; margin-left: auto; }
-  .patent-title { font-size: 16px; font-weight: 600; color: var(--tp); padding: 16px 20px 8px; line-height: 1.5; }
-  /* 논문 결과 표(.rc-grid)와 동일한 격자 방식.
-     모든 칸에 오른쪽·아래 선을 긋고, 바깥으로 나가는 선은 음수 여백으로 밀어 카드가 잘라낸다. */
+  .patent-header-spacer { flex: 1; }
+  .patent-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--teal-l); color: var(--teal); font-weight: 600; margin-left: 0; }
+  .patent-copy-btn { margin-left: 8px; }
+  /* 제목 영역은 논문(.rc-title-area)과 동일한 16px 20px 패딩을 사용한다. */
+  .patent-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 20px; }
+  .patent-title { font-size: 16px; font-weight: 600; color: var(--tp); line-height: 1.6; padding: 0; flex: 1; }
+  .patent-title-copy { flex-shrink: 0; margin-top: 4px; font-size: 11px; padding: 3px 10px; }
   .patent-grid { display: grid; grid-template-columns: 1fr 1fr;
                  border-top: 1px solid var(--border); margin-right: -1px; margin-bottom: -1px; }
   .patent-cell { padding: 11px 20px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
   .patent-cell-l { font-size: 13px; color: var(--tm); font-weight: 600; margin-bottom: 3px; }
   .patent-cell-v { font-size: 13px; color: var(--tp); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .patent-full { grid-column: 1 / -1; }
 
   /* ── 드롭다운 네비 ── */
   .nav-group { position: relative; display: inline-block; }

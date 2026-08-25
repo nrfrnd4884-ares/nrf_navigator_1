@@ -3,7 +3,7 @@
 
   async function loadFaqData() {
     try {
-      const res  = await fetch(APPS_SCRIPT_URL + '?action=faq');
+      const res  = await fetch(APP_CONFIG.appsScriptUrl + '?action=faq');
       const json = await res.json();
       _faqData = (json.items || []).filter(f => !isHiddenValue(f.use));
       buildFaqFilters();
@@ -84,7 +84,7 @@
   // Sheets에서 학습데이터 로드
   async function loadFaqFromSheets() {
     try {
-      const res  = await fetch(APPS_SCRIPT_URL + '?action=faq');
+      const res  = await fetch(APP_CONFIG.appsScriptUrl + '?action=faq');
       const json = await res.json();
       if (json.items && json.items.length) {
         FAQ_CONTEXT = json.items.map(f =>
@@ -146,7 +146,7 @@
 
     try {
       // Apps Script 프록시 → Gemini File Search(RAG). '이전 대화 포함'해서 POST로 전송
-      const res = await fetch(APPS_SCRIPT_URL, {
+      const res = await fetch(APP_CONFIG.appsScriptUrl, {
         method: 'POST',
         // text/plain 으로 보내야 Apps Script가 CORS 오류 없이 받습니다
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },

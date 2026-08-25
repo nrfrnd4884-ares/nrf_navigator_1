@@ -1,5 +1,4 @@
   /* ── 상담 게시판 ── */
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBCsY6YcI0g1fFfsWOlOYUKdNS4V13pZ8yZBuZPudESiCCcj_0dPYCskPEx7J7ywJ0/exec';
   let _allItems = [];
   let _curCat   = '전체';
   let _boardCategories = ['성과등록', '시스템 오류', '개선의견', '기타'];
@@ -17,12 +16,12 @@
     await loadBoardCategories();
     const el = document.getElementById('board-list');
     el.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>불러오는 중...</span></div>';
-    if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
-      el.innerHTML = '<div class="board-empty">⚙️ Apps Script URL을 설정해주세요.<br><span style="font-size:12px;color:var(--tm);">google_apps_script.js를 배포한 후 HTML의 APPS_SCRIPT_URL을 교체하세요.</span></div>';
+    if (APP_CONFIG.appsScriptUrl === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      el.innerHTML = '<div class="board-empty">⚙️ Apps Script URL을 설정해주세요.<br><span style="font-size:12px;color:var(--tm);">google_apps_script.js를 배포한 후 HTML의 APP_CONFIG.appsScriptUrl을 교체하세요.</span></div>';
       return;
     }
     try {
-      const res  = await fetch(APPS_SCRIPT_URL + '?action=list');
+      const res  = await fetch(APP_CONFIG.appsScriptUrl + '?action=list');
       const json = await res.json();
       _allItems  = json.items || [];
       renderBoard();
@@ -37,7 +36,7 @@
       return;
     }
     try {
-      const res = await fetch(APPS_SCRIPT_URL + '?action=boardCategory');
+      const res = await fetch(APP_CONFIG.appsScriptUrl + '?action=boardCategory');
       const json = await res.json();
       const items = (json.items || []).filter(c => c && c.category && !isHiddenValue(c.use));
       if (items.length) {
@@ -153,7 +152,7 @@
     const cat = document.getElementById('w-category').value;
     const nick= document.getElementById('w-nickname').value.trim() || '익명';
     if (!q) { document.getElementById('w-question').focus(); return; }
-    if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    if (APP_CONFIG.appsScriptUrl === 'YOUR_APPS_SCRIPT_URL_HERE') {
       alert('Apps Script URL을 먼저 설정해주세요.');
       return;
     }
@@ -161,7 +160,7 @@
     btn.disabled = true; btn.textContent = '제출 중...';
     try {
       const params = new URLSearchParams({ action:'submit', category:cat, nickname:nick, question:q });
-      await fetch(APPS_SCRIPT_URL + '?' + params.toString());
+      await fetch(APP_CONFIG.appsScriptUrl + '?' + params.toString());
       closeWriteModal();
       await loadBoard();
     } catch(e) {
