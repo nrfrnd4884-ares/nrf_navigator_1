@@ -5,18 +5,20 @@ window.appMarkupReady.then(() => {
     const isOpen = group.classList.contains('open');
     // 모든 드롭다운 닫기
     document.querySelectorAll('.nav-group').forEach(g => g.classList.remove('open'));
-    document.querySelectorAll('.nav-group-btn').forEach(b => b.classList.remove('open'));
+    document.querySelectorAll('.nav-group-btn').forEach(b => { b.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); });
     if (!isOpen) {
       group.classList.add('open');
       btn.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
     }
   }
+  window.toggleDropdown = toggleDropdown;
 
   // 외부 클릭 시 드롭다운 닫기
   document.addEventListener('click', e => {
     if (!e.target.closest('.nav-group')) {
       document.querySelectorAll('.nav-group').forEach(g => g.classList.remove('open'));
-      document.querySelectorAll('.nav-group-btn').forEach(b => b.classList.remove('open'));
+      document.querySelectorAll('.nav-group-btn').forEach(b => { b.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); });
     }
   });
 
@@ -64,12 +66,10 @@ window.appMarkupReady.then(() => {
     if (card) { e.preventDefault(); card.click(); }
   });
 
-  // ESC — 열린 메뉴와 질문 모달 닫기
+  // ESC — 열린 메뉴 닫기 (질문 모달은 네이티브 <dialog>가 Esc를 자동 처리함)
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
     closeMenu();
-    var m = document.getElementById('write-modal');
-    if (m && m.style.display === 'flex' && typeof closeWriteModal === 'function') closeWriteModal();
   });
 })();
 

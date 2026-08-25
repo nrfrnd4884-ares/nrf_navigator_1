@@ -1,18 +1,29 @@
   <div id="panel-doi" class="panel">
     <div class="panel-with-sidebar">
-      <div class="sidebar">
+      <nav class="sidebar" aria-label="성과 조회">
         <div class="sidebar-label">성과 조회</div>
         <button class="sidebar-item active" onclick="switchPanel('doi', this)" data-panel="doi">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>논문 조회
+          <span class="sidebar-item-label"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>논문 조회</span>
+          <span class="sidebar-item-arrow" aria-hidden="true">›</span>
         </button>
         <button class="sidebar-item" onclick="switchPanel('patent', this)" data-panel="patent">
-          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>특허 조회
+          <span class="sidebar-item-label"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>특허 조회</span>
+          <span class="sidebar-item-arrow" aria-hidden="true">›</span>
         </button>
-      </div>
+      </nav>
       <div class="panel-content">
-    <div class="html-style-007">
-      <h1 class="pg-title">논문 <em>조회</em></h1>
-      <p class="pg-desc">DOI 또는 논문 제목으로 서지정보를 자동 조회합니다. CrossRef DB 사용 · <strong>영문 검색 시 더 정확합니다.</strong></p>
+    <div class="breadcrumb">
+      <button type="button" onclick="resetHome(event)">홈</button>
+      <span class="sep" aria-hidden="true">›</span>
+      <span>성과 조회</span>
+      <span class="sep" aria-hidden="true">›</span>
+      <span class="current">논문 조회</span>
+    </div>
+    <div class="page-head">
+      <div>
+        <h1 class="pg-title">논문 <em>조회</em></h1>
+        <p class="pg-desc">DOI 또는 논문 제목으로 서지정보를 자동 조회합니다. CrossRef DB 사용 · <strong>영문 검색 시 더 정확합니다.</strong></p>
+      </div>
     </div>
 
     <div class="check-card">
@@ -33,18 +44,19 @@
     </div>
 
     <div class="search-card">
-      <div class="search-tabs">
-        <button class="stab active" id="stab-title" onclick="switchSearch('title')">
+      <div class="search-tabs" role="tablist" aria-label="논문 조회 방법">
+        <button class="stab active" id="stab-title" role="tab" aria-selected="true" aria-controls="search-title-panel" onclick="switchSearch('title')">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           논문 제목으로 검색
         </button>
-        <button class="stab" id="stab-doi" onclick="switchSearch('doi')">
+        <button class="stab" id="stab-doi" role="tab" aria-selected="false" aria-controls="search-doi-panel" onclick="switchSearch('doi')">
           <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
           DOI로 검색
         </button>
       </div>
       <div class="search-body">
-        <div id="search-doi-panel">
+        <div id="search-doi-panel" role="tabpanel" aria-labelledby="stab-doi">
+          <label class="sr-only" for="doi-input">DOI 입력</label>
           <div class="input-row">
             <input class="s-input mono" id="doi-input" type="text" placeholder="DOI 입력  (예: 10.1038/s41586-021-03819-2)" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter') doSearchDoi()"/>
             <button class="s-btn" id="doi-btn" onclick="doSearchDoi()">
@@ -59,7 +71,8 @@
             <span class="ex-chip" onclick="fillDoi('10.1016/j.cell.2020.02.058')">10.1016/j.cell.2020.02.058</span>
           </div>
         </div>
-        <div id="search-title-panel">
+        <div id="search-title-panel" role="tabpanel" aria-labelledby="stab-title">
+          <label class="sr-only" for="title-input">논문 제목 검색어</label>
           <div class="input-row">
             <input class="s-input" id="title-input" type="text" placeholder="논문 제목 키워드 입력  (영문 권장)" autocomplete="off" onkeydown="if(event.key==='Enter') doSearchTitle()"/>
             <button class="s-btn" id="title-btn" onclick="doSearchTitle()">
@@ -80,11 +93,11 @@
         결과 초기화
       </button>
     </div>
-    <div id="sr-area"></div>
-    <div id="result-area"></div>
+    <div id="sr-area" aria-live="polite" role="status"></div>
+    <div id="result-area" aria-live="polite"></div>
     <!-- 최근 조회 기록 -->
     <div class="html-style-013" id="history-section">
-      <div class="html-style-014">최근 조회 기록</div>
+      <h2 class="html-style-014">최근 조회 기록</h2>
       <div id="history-list"></div>
     </div>
       </div>

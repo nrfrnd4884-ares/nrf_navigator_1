@@ -1,0 +1,22 @@
+  /* ── 공통 개선의견 안내 ── */
+  /* 위 카드 줄과의 세로 간격을 가로 간격(--card-gap)과 똑같이 맞춘다.
+     main 의 아래 여백만큼을 빼서 순수 간격이 --card-gap 이 되게 함. */
+
+  .feedback-footer { max-width: 1000px; padding: 0 24px;
+                     margin: calc(var(--card-gap) - var(--main-pb)) auto clamp(14px,2.4vh,36px); }
+  .feedback-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; box-shadow: var(--sh); }
+  .feedback-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .feedback-mascot { height: 56px; width: auto; flex-shrink: 0; display: block; }
+  .feedback-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .feedback-title { font-size: 16px; font-weight: 600; color: var(--tp); }
+  .feedback-desc { font-size: 15px; color: var(--ts); line-height: 1.5; }
+  .feedback-btn { height: 34px; padding: 0 14px; background: var(--accent-l); color: var(--accent); border: 1px solid var(--accent-m); border-radius: var(--r2); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
+  .feedback-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  @media (max-width: 640px) {
+    /* margin-top 은 하드코딩하지 않고 --card-gap 계산식을 그대로 쓴다.
+       (고정값이면 본문 아래 여백과 어긋나 카드가 겹쳐 보임) */
+    .feedback-footer { margin: calc(var(--card-gap) - var(--main-pb)) auto 28px; padding: 0 14px; }
+    .feedback-box { flex-direction: column; align-items: flex-start; }
+    .feedback-mascot { height: 48px; }
+    .feedback-btn { width: 100%; }
+  }

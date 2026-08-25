@@ -1,24 +1,34 @@
   <div id="panel-board" class="panel">
     <div class="panel-with-sidebar">
-      <div class="sidebar">
+      <nav class="sidebar" aria-label="질의응답">
         <div class="sidebar-label">질의응답</div>
         <button class="sidebar-item" onclick="switchPanel('faq', this)" data-panel="faq">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>자주 묻는 질문
+          <span class="sidebar-item-label"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>자주 묻는 질문</span>
+          <span class="sidebar-item-arrow" aria-hidden="true">›</span>
         </button>
         <button class="sidebar-item" onclick="switchPanel('chat', this)" data-panel="chat">
-          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 상담
+          <span class="sidebar-item-label"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 상담</span>
+          <span class="sidebar-item-arrow" aria-hidden="true">›</span>
         </button>
         <button class="sidebar-item active" onclick="switchPanel('board', this)" data-panel="board">
-          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>상담 게시판
+          <span class="sidebar-item-label"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>상담 게시판</span>
+          <span class="sidebar-item-arrow" aria-hidden="true">›</span>
         </button>
-      </div>
+      </nav>
       <div class="panel-content">
-    <div class="html-style-036">
+    <div class="breadcrumb">
+      <button type="button" onclick="resetHome(event)">홈</button>
+      <span class="sep" aria-hidden="true">›</span>
+      <span>질의응답</span>
+      <span class="sep" aria-hidden="true">›</span>
+      <span class="current">상담 게시판</span>
+    </div>
+    <div class="page-head">
       <div>
         <h1 class="pg-title">상담 <em>게시판</em></h1>
         <p class="pg-desc">국가연구개발성과 등록·관리 관련 궁금한 점을 익명으로 질문하세요.</p>
       </div>
-      <button class="s-btn html-style-037" onclick="openWriteModal()">
+      <button class="btn primary" onclick="openWriteModal()">
         <svg class="html-style-038" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         질문하기
       </button>
@@ -26,9 +36,10 @@
 
     <!-- 검색창 -->
     <div class="html-style-029">
+      <label class="sr-only" for="board-search">질문 검색</label>
       <input class="html-style-030" id="board-search" type="text" placeholder="질문 검색..." oninput="boardSearch(this.value)"
        
-        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(76,104,187,0.16)'"
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.16)'"
         onblur="this.style.borderColor='';this.style.boxShadow=''"/>
     </div>
     <!-- 필터 -->
@@ -36,38 +47,36 @@
       <button class="cat-btn active" onclick="filterCat('전체',this)">전체</button>
     </div>
 
-    <div id="board-list"></div>
+    <div id="board-list" aria-live="polite"></div>
 
     <!-- 질문 모달 -->
-    <div class="html-style-040" id="write-modal">
-      <div class="html-style-041">
-        <div class="html-style-042">
-          <span class="html-style-043">질문 작성</span>
-          <button class="html-style-044" onclick="closeWriteModal()">×</button>
+    <dialog id="write-modal" aria-labelledby="write-modal-title">
+      <div class="modal-head">
+        <span class="modal-title" id="write-modal-title">질문 작성</span>
+        <button class="modal-close" type="button" onclick="closeWriteModal()" aria-label="닫기">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label for="w-category">분류</label>
+          <select class="control" id="w-category">
+            <option>성과등록</option>
+          </select>
         </div>
-        <div class="html-style-045">
-          <div>
-            <div class="html-style-046">분류</div>
-            <select class="html-style-047" id="w-category">
-              <option>성과등록</option>
-            </select>
-          </div>
-          <div>
-            <div class="html-style-046">닉네임 (선택)</div>
-            <input class="html-style-047" id="w-nickname" type="text" placeholder="익명" maxlength="20"/>
-          </div>
-          <div>
-            <div class="html-style-046">질문 내용 <span class="html-style-048">*</span></div>
-            <textarea class="html-style-049" id="w-question" placeholder="질문을 입력해주세요." maxlength="1000"></textarea>
-            <div class="html-style-050"><span id="q-count">0</span>/1000</div>
-          </div>
-          <div class="html-style-051">
-            <button class="html-style-052" onclick="closeWriteModal()">취소</button>
-            <button class="html-style-053" id="submit-btn" onclick="submitQuestion()">제출</button>
-          </div>
+        <div class="field">
+          <label for="w-nickname">닉네임 <span class="field-optional">(선택)</span></label>
+          <input class="control" id="w-nickname" type="text" placeholder="익명" maxlength="20"/>
+        </div>
+        <div class="field">
+          <label for="w-question">질문 내용 <span class="field-required">*</span></label>
+          <textarea class="control" id="w-question" placeholder="질문을 입력해주세요." maxlength="1000"></textarea>
+          <div class="field-counter"><span id="q-count">0</span>/1000</div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn" type="button" onclick="closeWriteModal()">취소</button>
+          <button class="btn primary" type="button" id="submit-btn" onclick="submitQuestion()">제출</button>
         </div>
       </div>
-    </div>
+    </dialog>
       </div>
     </div>
   </div>

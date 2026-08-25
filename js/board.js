@@ -17,7 +17,7 @@
     const el = document.getElementById('board-list');
     el.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>불러오는 중...</span></div>';
     if (APP_CONFIG.appsScriptUrl === 'YOUR_APPS_SCRIPT_URL_HERE') {
-      el.innerHTML = '<div class="board-empty">⚙️ Apps Script URL을 설정해주세요.<br><span style="font-size:12px;color:var(--tm);">google_apps_script.js를 배포한 후 HTML의 APP_CONFIG.appsScriptUrl을 교체하세요.</span></div>';
+      el.innerHTML = '<div class="board-empty">⚙️ Apps Script URL을 설정해주세요.<br><span style="font-size:15px;color:var(--tm);">google_apps_script.js를 배포한 후 HTML의 APP_CONFIG.appsScriptUrl을 교체하세요.</span></div>';
       return;
     }
     try {
@@ -137,15 +137,25 @@
 
   async function openWriteModal() {
     await loadBoardCategories();
-    document.getElementById('write-modal').style.display = 'flex';
+    document.getElementById('write-modal').showModal();
     document.getElementById('w-question').focus();
   }
   function closeWriteModal() {
-    document.getElementById('write-modal').style.display = 'none';
-    document.getElementById('w-question').value = '';
-    document.getElementById('w-nickname').value = '';
-    document.getElementById('q-count').textContent = '0';
+    const dialog = document.getElementById('write-modal');
+    if (dialog.open) dialog.close();
   }
+
+  window.appMarkupReady.then(() => {
+    const writeDialog = document.getElementById('write-modal');
+    // 백드롭(다이얼로그 바깥) 클릭 시 닫기
+    writeDialog.addEventListener('click', e => { if (e.target === writeDialog) closeWriteModal(); });
+    // 닫히는 경로(버튼·Esc·백드롭 클릭)에 관계없이 입력값은 한 번만 비운다
+    writeDialog.addEventListener('close', () => {
+      document.getElementById('w-question').value = '';
+      document.getElementById('w-nickname').value = '';
+      document.getElementById('q-count').textContent = '0';
+    });
+  });
 
   async function submitQuestion() {
     const q   = document.getElementById('w-question').value.trim();

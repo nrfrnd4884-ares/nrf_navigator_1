@@ -1,0 +1,97 @@
+/* KRDS-aligned foundations and accessibility primitives. */
+:root {
+  --krds-primary: var(--color-brand);
+  --krds-primary-hover: var(--color-brand-strong);
+  --krds-text: var(--color-text-primary);
+  --krds-text-secondary: var(--color-text-secondary);
+  --krds-border: var(--color-border-strong);
+  --krds-radius: var(--radius-sm);
+  --krds-control-height: var(--control-height);
+}
+
+html { scroll-behavior: smooth; }
+
+/* KRDS skip navigation: keyboard users can move directly to the main content. */
+.skip-link {
+  position: fixed;
+  top: -48px;
+  left: 16px;
+  z-index: 1000;
+  min-height: 40px;
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--krds-primary);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top .15s ease;
+}
+.skip-link:focus { top: 16px; }
+
+/* Do not remove the visible keyboard focus indicator. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-brand-muted);
+  outline-offset: 2px;
+  box-shadow: var(--focus);
+}
+
+button, input, select, textarea { font: inherit; }
+button:disabled, input:disabled, select:disabled, textarea:disabled {
+  cursor: not-allowed;
+}
+
+[aria-invalid="true"] {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(208, 66, 94, .16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Visually hidden labels remain available to screen readers. */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+
+/* KRDS visual layer: 8-point spacing, clear hierarchy, and restrained elevation.
+   폭은 사이트가 이미 확장해 둔 1560px/32px 기준(components.css "폭 확장" 레이어)을 따른다. */
+header {
+  border-bottom-color: var(--color-border);
+}
+#main-nav { gap: var(--space-1); }
+.nav-tab, .nav-group-btn { min-height: 44px; padding-inline: var(--space-3); }
+
+.search-tabs { min-height: 52px; }
+.stab { min-height: 52px; padding: var(--space-3) var(--space-4); }
+.search-body { padding: var(--space-6); }
+.input-row { gap: var(--space-2); }
+.s-input, .s-btn { min-height: var(--control-height); height: var(--control-height); }
+.s-btn { font-weight: 700; background: var(--krds-primary); }
+.s-btn:hover { background: var(--krds-primary-hover); opacity: 1; }
+
+.rc-header, .patent-header { min-height: 48px; padding-block: var(--space-3); }
+.rc-title-area, .patent-title-row { padding: var(--space-4) var(--space-5); }
+.rc-section-head { padding-block: var(--space-3); }
+.rc-cell, .patent-cell { padding-block: var(--space-3); }
+
+.home-card { transition: border-color .15s ease, box-shadow .15s ease; }
+.home-card:hover { transform: none; border-color: var(--color-brand-muted); box-shadow: 0 4px 12px rgba(23,37,84,.10); }
+.home-card:focus-visible { transform: none; }

@@ -76,9 +76,10 @@
     const panel = document.getElementById('panel-' + id);
     if (!panel) return;
     panel.classList.add('active');
-    document.querySelectorAll('.nav-tab, .nav-group-btn, .nav-dropdown-item, .sidebar-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.nav-tab, .nav-group-btn, .nav-dropdown-item, .sidebar-item').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
     document.querySelectorAll('[data-panel="' + id + '"]').forEach(b => {
       b.classList.add('active');
+      b.setAttribute('aria-current', 'page');
       const group = b.closest('.nav-group');
       if (group) group.querySelector('.nav-group-btn').classList.add('active');
     });
@@ -130,6 +131,8 @@
     document.getElementById('search-title-panel').style.display = type === 'title' ? '' : 'none';
     document.getElementById('stab-doi').classList.toggle('active',   type === 'doi');
     document.getElementById('stab-title').classList.toggle('active', type === 'title');
+    document.getElementById('stab-doi').setAttribute('aria-selected',   type === 'doi');
+    document.getElementById('stab-title').setAttribute('aria-selected', type === 'title');
     document.getElementById('sr-area').innerHTML = '';
     document.getElementById('result-area').innerHTML = '';
     const dcb = document.getElementById('doi-clear-bar'); if (dcb) dcb.style.display = 'none';

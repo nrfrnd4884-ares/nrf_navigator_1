@@ -1,18 +1,29 @@
   <div id="panel-patent" class="panel">
     <div class="panel-with-sidebar">
-      <div class="sidebar">
+      <nav class="sidebar" aria-label="성과 조회">
         <div class="sidebar-label">성과 조회</div>
         <button class="sidebar-item" onclick="switchPanel('doi', this)" data-panel="doi">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>논문 조회
+          <span class="sidebar-item-label"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>논문 조회</span>
+          <span class="sidebar-item-arrow" aria-hidden="true">›</span>
         </button>
         <button class="sidebar-item active" onclick="switchPanel('patent', this)" data-panel="patent">
-          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>특허 조회
+          <span class="sidebar-item-label"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>특허 조회</span>
+          <span class="sidebar-item-arrow" aria-hidden="true">›</span>
         </button>
-      </div>
+      </nav>
       <div class="panel-content">
-    <div class="html-style-024">
-      <h1 class="pg-title">특허 <em>조회</em></h1>
-      <p class="pg-desc">출원번호, 등록번호 또는 발명 명칭으로 특허 서지정보를 조회합니다. KIPRIS DB 사용 · <strong>비공개 특허는 검색되지 않습니다.</strong></p>
+    <div class="breadcrumb">
+      <button type="button" onclick="resetHome(event)">홈</button>
+      <span class="sep" aria-hidden="true">›</span>
+      <span>성과 조회</span>
+      <span class="sep" aria-hidden="true">›</span>
+      <span class="current">특허 조회</span>
+    </div>
+    <div class="page-head">
+      <div>
+        <h1 class="pg-title">특허 <em>조회</em></h1>
+        <p class="pg-desc">출원번호, 등록번호 또는 발명 명칭으로 특허 서지정보를 조회합니다. KIPRIS DB 사용 · <strong>비공개 특허는 검색되지 않습니다.</strong></p>
+      </div>
     </div>
 
     <div class="check-card">
@@ -33,22 +44,24 @@
     </div>
 
     <div class="search-card">
-      <div class="search-tabs">
-        <button class="stab active" id="ptab-word" onclick="switchPatentSearch('word')">
+      <div class="search-tabs" role="tablist" aria-label="특허 조회 방법">
+        <button class="stab active" id="ptab-word" role="tab" aria-selected="true" aria-controls="patent-word-panel" onclick="switchPatentSearch('word')">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           특허 제목으로 검색
         </button>
-        <button class="stab" id="ptab-application" onclick="switchPatentSearch('application')">
+        <button class="stab" id="ptab-application" role="tab" aria-selected="false" aria-controls="patent-application-panel" onclick="switchPatentSearch('application')">
           <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           출원번호
         </button>
-        <button class="stab" id="ptab-registration" onclick="switchPatentSearch('registration')">
+        <button class="stab" id="ptab-registration" role="tab" aria-selected="false" aria-controls="patent-registration-panel" onclick="switchPatentSearch('registration')">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           등록번호
         </button>
       </div>
       <div class="search-body">
-        <div id="patent-application-panel">
+        <div id="patent-application-panel" role="tabpanel" aria-labelledby="ptab-application">
+          <label class="sr-only" for="patent-app-country">출원번호 국가</label>
+          <label class="sr-only" for="patent-app-input">출원번호</label>
           <div class="input-row">
             <select class="html-style-025" id="patent-app-country">
               <option value="KR" selected>🇰🇷 한국</option>
@@ -63,7 +76,9 @@
           </div>
           <p class="html-style-026">하이픈(-) 포함 또는 미포함 모두 가능합니다.</p>
         </div>
-        <div id="patent-registration-panel">
+        <div id="patent-registration-panel" role="tabpanel" aria-labelledby="ptab-registration">
+          <label class="sr-only" for="patent-reg-country">등록번호 국가</label>
+          <label class="sr-only" for="patent-reg-input">등록번호</label>
           <div class="input-row">
             <select class="html-style-025" id="patent-reg-country">
               <option value="KR" selected>🇰🇷 한국</option>
@@ -78,7 +93,8 @@
           </div>
           <p class="html-style-026">하이픈(-) 포함 또는 미포함 모두 가능합니다.</p>
         </div>
-        <div id="patent-word-panel">
+        <div id="patent-word-panel" role="tabpanel" aria-labelledby="ptab-word">
+          <label class="sr-only" for="patent-word-input">특허 제목 검색어</label>
           <div class="input-row">
             <input class="s-input" id="patent-word-input" placeholder="발명 명칭 입력 (예: 인공지능 기반 이미지 분류)" onkeydown="if(event.key==='Enter') searchPatent()">
             <button class="s-btn" onclick="searchPatent()">조회</button>
@@ -95,11 +111,11 @@
         결과 초기화
       </button>
     </div>
-    <div id="patent-result-area"></div>
+    <div id="patent-result-area" aria-live="polite"></div>
 
     <!-- 특허 최근 조회 기록 -->
     <div class="html-style-013" id="patent-history-section">
-      <div class="html-style-014">최근 조회 기록</div>
+      <h2 class="html-style-014">최근 조회 기록</h2>
       <div id="patent-history-list"></div>
     </div>
       </div>
