@@ -1,0 +1,36 @@
+  <div id="panel-faq" class="panel">
+    <div class="panel-with-sidebar">
+      <div class="sidebar">
+        <div class="sidebar-label">질의응답</div>
+        <button class="sidebar-item active" onclick="switchPanel('faq', this)" data-panel="faq">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>자주 묻는 질문
+        </button>
+        <button class="sidebar-item" onclick="switchPanel('chat', this)" data-panel="chat">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 상담
+        </button>
+        <button class="sidebar-item" onclick="switchPanel('board', this)" data-panel="board">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>상담 게시판
+        </button>
+      </div>
+      <div class="panel-content">
+    <div class="html-style-036">
+      <div>
+        <h1 class="pg-title">자주 묻는 <em>질문</em></h1>
+      </div>
+    </div>
+
+    <!-- 검색창 -->
+    <div class="html-style-029">
+      <input class="html-style-030" id="faq-search" type="text" placeholder="질문 검색..." oninput="faqSearch(this.value)"
+       
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(76,104,187,0.16)'"
+        onblur="this.style.borderColor='';this.style.boxShadow=''"/>
+    </div>
+    <!-- 카테고리 필터 (동적 생성) -->
+    <div class="html-style-031" id="faq-filter-bar">
+      <button class="cat-btn active" onclick="faqFilter('전체',this)">전체</button>
+    </div>
+    <div id="faq-list"><div class="loading-wrap"><div class="spinner"></div><span>FAQ 불러오는 중...</span></div></div>
+      </div>
+    </div>
+  </div>

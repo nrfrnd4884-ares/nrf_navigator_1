@@ -1,0 +1,107 @@
+  <div id="panel-patent" class="panel">
+    <div class="panel-with-sidebar">
+      <div class="sidebar">
+        <div class="sidebar-label">성과 조회</div>
+        <button class="sidebar-item" onclick="switchPanel('doi', this)" data-panel="doi">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>논문 조회
+        </button>
+        <button class="sidebar-item active" onclick="switchPanel('patent', this)" data-panel="patent">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>특허 조회
+        </button>
+      </div>
+      <div class="panel-content">
+    <div class="html-style-024">
+      <h1 class="pg-title">특허 <em>조회</em></h1>
+      <p class="pg-desc">출원번호, 등록번호 또는 발명 명칭으로 특허 서지정보를 조회합니다. KIPRIS DB 사용 · <strong>비공개 특허는 검색되지 않습니다.</strong></p>
+    </div>
+
+    <div class="check-card">
+      <div class="check-head">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span class="check-title">입력 전 확인사항</span>
+      </div>
+      <p class="check-desc">특허 성과는 과제 관련성, 사사표기 또는 과제 연계 근거, 출원·등록 정보, 출원인 명의 및 발명자 정보를 함께 확인해야 합니다. 조회 결과는 성과입력 편의를 위한 참고자료로 활용해 주세요.</p>
+      <ul class="check-list">
+        <li>해당 특허가 수행 과제와 관련된 성과인가요?</li>
+        <li>과제 참여자 또는 수행기관이 특허 성과와 관련되어 있나요?</li>
+        <li>사사표기에 과제번호 또는 지원사업 정보가 명시되어 있나요?</li>
+        <li>출원번호 또는 등록번호가 정확한가요?</li>
+        <li>출원일, 등록일, 출원인, 발명자 정보가 확인되었나요?</li>
+        <li>출원인이 개인 명의가 아닌 주관기관 명의로 되어 있나요?</li>
+      </ul>
+      <div class="check-note">※ 비공개 특허 또는 일부 해외 특허는 조회되지 않을 수 있습니다.</div>
+    </div>
+
+    <div class="search-card">
+      <div class="search-tabs">
+        <button class="stab active" id="ptab-word" onclick="switchPatentSearch('word')">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          발명 명칭
+        </button>
+        <button class="stab" id="ptab-application" onclick="switchPatentSearch('application')">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          출원번호
+        </button>
+        <button class="stab" id="ptab-registration" onclick="switchPatentSearch('registration')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          등록번호
+        </button>
+      </div>
+      <div class="search-body">
+        <div class="html-style-008" id="patent-application-panel">
+          <div class="input-row">
+            <select class="html-style-025" id="patent-app-country">
+              <option value="KR" selected>🇰🇷 한국</option>
+              <option value="US">🇺🇸 미국</option>
+              <option value="EP">🇪🇺 유럽</option>
+              <option value="JP">🇯🇵 일본</option>
+              <option value="CN">🇨🇳 중국</option>
+              <option value="WO">🌐 PCT</option>
+            </select>
+            <input class="s-input" id="patent-app-input" placeholder="출원번호 입력 (예: 10-2024-0012345)" onkeydown="if(event.key==='Enter') searchPatent()">
+            <button class="s-btn" onclick="searchPatent()">조회</button>
+          </div>
+          <p class="html-style-026">하이픈(-) 포함 또는 미포함 모두 가능합니다.</p>
+        </div>
+        <div class="html-style-008" id="patent-registration-panel">
+          <div class="input-row">
+            <select class="html-style-025" id="patent-reg-country">
+              <option value="KR" selected>🇰🇷 한국</option>
+              <option value="US">🇺🇸 미국</option>
+              <option value="EP">🇪🇺 유럽</option>
+              <option value="JP">🇯🇵 일본</option>
+              <option value="CN">🇨🇳 중국</option>
+              <option value="WO">🌐 PCT</option>
+            </select>
+            <input class="s-input" id="patent-reg-input" placeholder="등록번호 입력 (예: 10-1234567)" onkeydown="if(event.key==='Enter') searchPatent()">
+            <button class="s-btn" onclick="searchPatent()">조회</button>
+          </div>
+          <p class="html-style-026">하이픈(-) 포함 또는 미포함 모두 가능합니다.</p>
+        </div>
+        <div id="patent-word-panel">
+          <div class="input-row">
+            <input class="s-input" id="patent-word-input" placeholder="발명 명칭 입력 (예: 인공지능 기반 이미지 분류)" onkeydown="if(event.key==='Enter') searchPatent()">
+            <button class="s-btn" onclick="searchPatent()">조회</button>
+          </div>
+          <p class="html-style-027">🇰🇷 한국 특허만 검색 가능합니다. 해외 특허는 출원번호 또는 등록번호 탭에서 국가를 선택하여 검색하세요.</p>
+          <p class="html-style-028">※ 검색 결과는 최대 30건까지 보여줍니다. 찾는 특허가 없으면 발명 명칭을 더 구체적으로 입력해 주세요.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="html-style-010" id="patent-clear-bar">
+      <button class="html-style-011" onclick="clearPatentSearch()">
+        <svg class="html-style-012" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        결과 초기화
+      </button>
+    </div>
+    <div id="patent-result-area"></div>
+
+    <!-- 특허 최근 조회 기록 -->
+    <div class="html-style-013" id="patent-history-section">
+      <div class="html-style-014">최근 조회 기록</div>
+      <div id="patent-history-list"></div>
+    </div>
+      </div>
+    </div>
+  </div>

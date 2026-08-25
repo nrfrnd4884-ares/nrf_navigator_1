@@ -1,0 +1,23 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  /* 한국연구재단 홈페이지에서 추출한 색 (2026-07 기준) */
+  --bg: #f4f7fb; --surface: #fff; --surface2: #eef2f8;
+  --border: #e3e8f1; --border2: #c6cfe0;
+  --tp: #212529; --ts: #55606e; --tm: #8a93a2;
+  --accent: #4c68bb; --accent-l: #eef1f9; --accent-m: #b9c5e3;
+  --accent-d: #4a5ea3;
+  --teal: #61a1b0; --teal-l: #ebf4f6; --teal-m: #c3dfe5;
+  --success: #3f8a86; --success-bg: #eef6f7; --success-border: #c3dfe5;
+  --error: #d0425e; --error-bg: #fbf0f3;
+  --warn-bg: #f7f9fc; --warn-border: #dbe3ef;
+  --navy: #1c264b; --navy2: #2a3766;
+  --r: 12px; --r2: 8px;
+  /* 카드 사이 간격 — 가로(카드끼리)와 세로(줄 사이)에 같은 값을 쓴다 */
+  --card-gap: clamp(11px, 1.6vh, 16px);
+  /* 본문 아래 여백 — 하단 줄 간격 계산에도 함께 쓰인다 */
+  --main-pb: clamp(30px, 5vh, 52px);
+  --sh: 0 1px 3px rgba(28,38,75,0.06), 0 0 0 1px rgba(28,38,75,0.04);
+  --focus: 0 0 0 3px rgba(76,104,187,0.28);
+}
+body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif; background: var(--bg); color: var(--tp); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+
