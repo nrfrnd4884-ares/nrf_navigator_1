@@ -51,6 +51,27 @@
   --radius-md: var(--r);
   --shadow-card: var(--sh);
   --control-height: 44px;
+
+  /* Font-size scale — change a value here to move every rule that uses it. */
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-17: 17px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-22: 22px;
+  --fs-24: 24px;
+  --fs-25: 25px;
+  --fs-28: 28px;
+  --fs-30: 30px;
+  --fs-36: 36px;
+
+  /* Font-weight scale */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
 }
-body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif; background: var(--bg); color: var(--tp); min-height: 100vh; font-size: 17px; line-height: 1.6; }
+body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif; background: var(--bg); color: var(--tp); min-height: 100vh; font-size: var(--fs-17); line-height: 1.6; }
 

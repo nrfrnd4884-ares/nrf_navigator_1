@@ -190,17 +190,17 @@
     try {
       const hist = patentHistory;
       if (!hist.length) {
-        el.innerHTML = '<p style="font-size:16px;color:var(--tm);padding:8px 0;">조회 기록이 없습니다.</p>';
+        el.innerHTML = '<p style="font-size:var(--fs-16);color:var(--tm);padding:8px 0;">조회 기록이 없습니다.</p>';
         return;
       }
       const typeLabel = { application: '출원번호', registration: '등록번호', word: '발명명칭' };
       el.innerHTML = hist.map(h =>
         '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);gap:10px;">'
         + '<div style="flex:1;min-width:0;">'
-        + '<div style="font-size:16px;color:var(--tp);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(h.title) + '</div>'
-        + '<div style="font-size:13px;color:var(--tm);">' + (typeLabel[h.type] || '') + ' · ' + esc(h.query) + '</div>'
+        + '<div style="font-size:var(--fs-16);color:var(--tp);font-weight:var(--fw-medium);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(h.title) + '</div>'
+        + '<div style="font-size:var(--fs-14);color:var(--tm);">' + (typeLabel[h.type] || '') + ' · ' + esc(h.query) + '</div>'
         + '</div>'
-        + '<button onclick="reSearchPatent(this.dataset.q, this.dataset.t)" data-q="' + esc(h.query) + '" data-t="' + h.type + '" style="font-size:13px;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--accent);flex-shrink:0;">다시 조회</button>'
+        + '<button onclick="reSearchPatent(this.dataset.q, this.dataset.t)" data-q="' + esc(h.query) + '" data-t="' + h.type + '" style="font-size:var(--fs-14);padding:3px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--accent);flex-shrink:0;">다시 조회</button>'
         + '</div>'
       ).join('');
     } catch(e) {}

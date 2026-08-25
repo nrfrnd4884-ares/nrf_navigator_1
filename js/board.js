@@ -17,7 +17,7 @@
     const el = document.getElementById('board-list');
     el.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>불러오는 중...</span></div>';
     if (APP_CONFIG.appsScriptUrl === 'YOUR_APPS_SCRIPT_URL_HERE') {
-      el.innerHTML = '<div class="board-empty">⚙️ Apps Script URL을 설정해주세요.<br><span style="font-size:15px;color:var(--tm);">google_apps_script.js를 배포한 후 HTML의 APP_CONFIG.appsScriptUrl을 교체하세요.</span></div>';
+      el.innerHTML = '<div class="board-empty">⚙️ Apps Script URL을 설정해주세요.<br><span style="font-size:var(--fs-15);color:var(--tm);">google_apps_script.js를 배포한 후 HTML의 APP_CONFIG.appsScriptUrl을 교체하세요.</span></div>';
       return;
     }
     try {

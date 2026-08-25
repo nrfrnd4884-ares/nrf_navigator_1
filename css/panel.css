@@ -4,19 +4,19 @@
     width: 220px; flex-shrink: 0; overflow: hidden;
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh);
   }
-  .sidebar-label { background: var(--accent); color: #fff; font-weight: 800; padding: 14px 16px; font-size: 15px; }
+  .sidebar-label { background: var(--accent); color: #fff; font-weight: var(--fw-extrabold); padding: 14px 16px; font-size: var(--fs-15); }
   .sidebar-item {
     width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 12px 16px; font-size: 16px; font-weight: 500; color: var(--ts);
+    padding: 12px 16px; font-size: var(--fs-16); font-weight: var(--fw-medium); color: var(--ts);
     background: var(--surface); border: none; border-bottom: 1px solid var(--border);
     cursor: pointer; text-align: left; transition: background 0.12s, color 0.12s;
   }
   .sidebar-item:last-child { border-bottom: 0; }
   .sidebar-item:hover { background: var(--surface2); color: var(--tp); }
-  .sidebar-item.active { color: var(--accent-d); background: var(--accent-l); font-weight: 700; box-shadow: inset 4px 0 0 var(--accent); }
+  .sidebar-item.active { color: var(--accent-d); background: var(--accent-l); font-weight: var(--fw-bold); box-shadow: inset 4px 0 0 var(--accent); }
   .sidebar-item-label { display: flex; align-items: center; min-width: 0; }
   .sidebar-item svg { width: 14px; height: 14px; margin-right: 8px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .sidebar-item-arrow { flex: none; color: var(--tm); font-size: 16px; line-height: 1; }
+  .sidebar-item-arrow { flex: none; color: var(--tm); font-size: var(--fs-16); line-height: 1; }
   .panel-content { flex: 1; min-width: 0; }
 
   /* 모바일: 사이드바 → 상단 가로 스크롤 탭 */

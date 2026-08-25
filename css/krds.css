@@ -24,8 +24,8 @@ html { scroll-behavior: smooth; }
   border-radius: var(--radius-sm);
   background: var(--krds-primary);
   color: #fff;
-  font-size: 17px;
-  font-weight: 600;
+  font-size: var(--fs-17);
+  font-weight: var(--fw-semibold);
   text-decoration: none;
   transition: top .15s ease;
 }
@@ -84,7 +84,7 @@ header {
 .search-body { padding: var(--space-6); }
 .input-row { gap: var(--space-2); }
 .s-input, .s-btn { min-height: var(--control-height); height: var(--control-height); }
-.s-btn { font-weight: 700; background: var(--krds-primary); }
+.s-btn { font-weight: var(--fw-bold); background: var(--krds-primary); }
 .s-btn:hover { background: var(--krds-primary-hover); opacity: 1; }
 
 .rc-header, .patent-header { min-height: 48px; padding-block: var(--space-3); }

@@ -81,7 +81,7 @@
         + (journal ? '<span>' + journal + '</span>' : '')
         + (year ? '<span>' + year + '</span>' : '')
         + (vol || iss ? '<span>' + [vol, iss].filter(Boolean).join(' ') + '</span>' : '')
-        + (doi ? '<span style="font-family:monospace;font-size:13px;">' + doi + '</span>' : '')
+        + (doi ? '<span style="font-family:monospace;font-size:var(--fs-14);">' + doi + '</span>' : '')
         + '</div></div>';
     });
     html += '</div></div>';
@@ -196,7 +196,7 @@
     h += '<div class="rc-title-area">'
       + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">'
       + '<div class="rc-title">' + esc(title) + '</div>'
-      + '<button class="cell-copy-btn" style="font-size:13px;padding:3px 10px;flex-shrink:0;margin-top:4px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + title.replace(/"/g,'&quot;') + '">복사</button>'
+      + '<button class="cell-copy-btn" style="font-size:var(--fs-14);padding:3px 10px;flex-shrink:0;margin-top:4px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + title.replace(/"/g,'&quot;') + '">복사</button>'
       + '</div>'
       + '</div>';
 
@@ -233,7 +233,7 @@
     const gaejae = acceptDate || onlineDate;
     h += cell('ISSN', issnHtml(), false, issnRaw.join(';'));
     h += cell('학술지 구분', '<span class="cell-v muted">직접 입력 필요</span>');
-    h += cell('학술지 게재일자', gaejae ? esc(gaejae) + (onlineDate && !acceptDate ? ' <span style="font-size:13px;color:var(--tm);">(온라인)</span>' : '') : '-');
+    h += cell('학술지 게재일자', gaejae ? esc(gaejae) + (onlineDate && !acceptDate ? ' <span style="font-size:var(--fs-14);color:var(--tm);">(온라인)</span>' : '') : '-');
 
     /* 행4: 학술지 출판일자 / 발행국가 / 국제공동연구 */
     h += cell('학술지 출판일자', pubDate ? esc(pubDate) : '-');
@@ -256,7 +256,7 @@
         + '<div class="abstract-area"><div class="abstract-text clamped" id="abs-text">' + esc(abstractRaw) + '</div>'
         + '<div style="display:flex;gap:8px;margin-top:6px;">'
         + '<button class="abstract-toggle" onclick="toggleAbstract(this)">전체 보기 ▾</button>'
-        + '<button class="cell-copy-btn" style="font-size:15px;padding:3px 10px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + abstractRaw.replace(/"/g,'&quot;') + '">복사</button>'
+        + '<button class="cell-copy-btn" style="font-size:var(--fs-15);padding:3px 10px;" onclick="copySingleCell(this, this.dataset.v)" data-v="' + abstractRaw.replace(/"/g,'&quot;') + '">복사</button>'
         + '</div></div></div>';
     }
 
