@@ -59,7 +59,6 @@
   --fs-17: 17px;
   --fs-18: 18px;
   --fs-20: 20px;
-  --fs-22: 22px;
   --fs-24: 24px;
   --fs-25: 25px;
   --fs-28: 28px;
@@ -68,10 +67,10 @@
 
   /* Font-weight scale */
   --fw-regular: 400;
-  --fw-medium: 500;
-  --fw-semibold: 600;
-  --fw-bold: 700;
-  --fw-extrabold: 800;
+  --fw-medium: 600;
+  --fw-semibold: 700;
+  --fw-bold: 800;
+  --fw-extrabold: 900;
 }
 body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif; background: var(--bg); color: var(--tp); min-height: 100vh; font-size: var(--fs-17); line-height: 1.6; }
 

@@ -317,7 +317,7 @@
   .hero-card-label svg { width: 13px; height: 13px; fill: none; stroke: var(--accent);
                          stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
                          flex-shrink: 0; }
-  .hero-card-main { display: block; font-size: var(--fs-22); font-weight: var(--fw-bold); color: var(--navy);
+  .hero-card-main { display: block; font-size: var(--fs-24); font-weight: var(--fw-bold); color: var(--navy);
                     letter-spacing: -0.02em; line-height: 1.25; text-decoration: none; }
   .hero-card-sub { font-size: var(--fs-15); color: var(--tm); margin-top: 4px; }
   a.hero-card:hover { border-color: var(--accent-m); box-shadow: 0 4px 14px rgba(23,37,84,0.09); }

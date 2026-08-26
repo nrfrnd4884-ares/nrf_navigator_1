@@ -8,8 +8,8 @@
   .feedback-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
   .feedback-mascot { height: 56px; width: auto; flex-shrink: 0; display: block; }
   .feedback-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-  .feedback-title { font-size: var(--fs-16); font-weight: var(--fw-semibold); color: var(--tp); }
-  .feedback-desc { font-size: var(--fs-15); color: var(--ts); line-height: 1.5; }
+  .feedback-title { font-size: var(--fs-18); font-weight: var(--fw-semibold); color: var(--tp); }
+  .feedback-desc { font-size: var(--fs-16); color: var(--ts); line-height: 1.5; }
   .feedback-btn { height: 34px; padding: 0 14px; background: var(--accent-l); color: var(--accent); border: 1px solid var(--accent-m); border-radius: var(--r2); font-size: var(--fs-15); font-weight: var(--fw-semibold); font-family: inherit; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
   .feedback-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
   @media (max-width: 640px) {
