@@ -8,7 +8,7 @@
 .search-body { padding: 20px; }
 .input-row { display: flex; gap: 8px; }
 .s-input { flex: 1; height: 44px; padding: 0 14px; border: 1px solid var(--border2); border-radius: var(--r2); font-size: var(--fs-17); font-family: inherit; color: var(--tp); background: var(--surface); outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
-.s-input.mono { font-family: 'IBM Plex Mono', monospace; font-size: var(--fs-16); }
+.s-input.mono { font-family: 'Pretendard', monospace; font-size: var(--fs-16); }
 .s-input::placeholder { color: var(--tm); font-size: var(--fs-16); font-family: inherit; }
 .s-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.14); }
 .s-btn { height: 44px; padding: 0 20px; background: var(--accent); color: #fff; border: none; border-radius: var(--r2); font-size: var(--fs-16); font-weight: var(--fw-medium); font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: opacity 0.15s; }
