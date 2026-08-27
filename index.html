@@ -1624,10 +1624,16 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
       /* CrossRef와 KCI를 동시에 부른다.
          차례로 부르면 기다리는 시간이 두 배가 되므로 한 번에 보낸다.
          allSettled를 쓰는 이유 — 한쪽이 실패해도 나머지는 살려야 하기 때문.
-         (예: KCI 점검 중이어도 CrossRef 결과는 그대로 보여준다) */
+         (예: KCI 점검 중이어도 CrossRef 결과는 그대로 보여준다)
+
+         ※ KCI 요청에 cache:'no-store'와 시각값(_t)을 붙인다.
+           일부 모바일 브라우저가 조회 결과를 캐시에 담아두는데, 한 번 실패한 응답이
+           저장되면 그 뒤로는 서버에 묻지도 않고 같은 오류만 계속 보여준다.
+           (재시도 로직조차 무용지물이 된다) */
       const [crRes, kciRes] = await Promise.allSettled([
         fetch(url).then(function (r) { if (!r.ok) throw {type:'network'}; return r.json(); }),
-        fetch(APPS_SCRIPT_URL + '?action=kci&type=search&query=' + encodeURIComponent(q))
+        fetch(APPS_SCRIPT_URL + '?action=kci&type=search&query=' + encodeURIComponent(q)
+              + '&_t=' + Date.now(), { cache: 'no-store' })
           .then(function (r) { return r.json(); })
       ]);
 
@@ -1754,7 +1760,8 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     setLoading('result-area', '상세 정보 조회 중...');
     document.getElementById('sr-area').innerHTML = '';
     try {
-      const res  = await fetch(APPS_SCRIPT_URL + '?action=kci&type=detail&id=' + encodeURIComponent(w._kci.id));
+      const res  = await fetch(APPS_SCRIPT_URL + '?action=kci&type=detail&id=' + encodeURIComponent(w._kci.id)
+                             + '&_t=' + Date.now(), { cache: 'no-store' });
       const json = await res.json();
       if (json.error || !json.item) throw {type:'network'};
       const full = kciToWork(json.item);
