@@ -81,6 +81,10 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 .sr-item-title { font-size: 16px; font-weight: 500; color: var(--tp); line-height: 1.5; margin-bottom: 5px; }
 .sr-item-meta { font-size: 13px; color: var(--tm); display: flex; gap: 12px; flex-wrap: wrap; }
 .sr-item-meta span { display: flex; align-items: center; gap: 3px; }
+/* 검색 결과가 어느 데이터베이스에서 왔는지 표시 */
+.src-tag { font-size:11px; font-weight:700; padding:1px 6px; border-radius:3px; letter-spacing:0.2px; }
+.src-kci { background:#e8f1e8; color:#2f6b3d; border:1px solid #cfe3d2; }
+.src-cr  { background:var(--surface2); color:var(--tm); border:1px solid var(--border); }
 
 /* ── 결과 카드 ── */
 #result-area { }
@@ -1611,15 +1615,134 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
          찾으려는 논문이 31번째에 있으면 아예 조회되지 않는다.
          화면에 보이는 건수가 늘어나는 것이 아니라 '고를 수 있는 후보'가 넓어지는 것. */
       const url = 'https://api.crossref.org/works?query.title=' + encodeURIComponent(q) + '&rows=50&select=DOI,title,container-title,published,author,type,volume,issue';
-      const res = await fetch(url);
-      if (!res.ok) throw {type:'network'};
-      const json = await res.json();
-      const items = json.message.items || [];
+
+      /* CrossRef와 KCI를 동시에 부른다.
+         차례로 부르면 기다리는 시간이 두 배가 되므로 한 번에 보낸다.
+         allSettled를 쓰는 이유 — 한쪽이 실패해도 나머지는 살려야 하기 때문.
+         (예: KCI 점검 중이어도 CrossRef 결과는 그대로 보여준다) */
+      const [crRes, kciRes] = await Promise.allSettled([
+        fetch(url).then(function (r) { if (!r.ok) throw {type:'network'}; return r.json(); }),
+        fetch(APPS_SCRIPT_URL + '?action=kci&type=search&query=' + encodeURIComponent(q))
+          .then(function (r) { return r.json(); })
+      ]);
+
+      if (crRes.status === 'rejected' && kciRes.status === 'rejected') throw {type:'network'};
+
+      const crItems  = (crRes.status  === 'fulfilled') ? ((crRes.value.message && crRes.value.message.items) || []) : [];
+      const kciItems = (kciRes.status === 'fulfilled' && !kciRes.value.error) ? (kciRes.value.items || []) : [];
+
+      const items = mergePaperResults(crItems, kciItems);
       if (!items.length) { document.getElementById('sr-area').innerHTML = '<div class="error-card"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>검색 결과가 없습니다. 다른 키워드로 시도해보세요.</p></div>'; btn.disabled = false; return; }
       _srQuery   = q;        // 정확도 필터에 쓸 검색어 보관
       renderSearchList(items);
     } catch(e) { showError('sr-area', e); }
     btn.disabled = false;
+  }
+
+  /* ═══════════ KCI(한국학술지인용색인) 연동 ═══════════
+     CrossRef는 학술지가 DOI를 등록해야 데이터가 들어간다. 국내 비SCI 학술지는
+     DOI가 없거나 영문 메타데이터만 올려서 한글 제목으로는 검색되지 않는다.
+     → KCI를 함께 조회해 그 구멍을 메운다.
+
+     핵심 아이디어 : KCI 응답을 'CrossRef 모양'으로 바꿔서 넘긴다.
+       이렇게 하면 목록 그리기·정렬·정확도 필터·상세 화면·복사 버튼을
+       고치지 않고 그대로 쓸 수 있다. */
+
+  /* KCI 한 건 → CrossRef 형태의 객체.
+     목록(간략)과 상세(전체) 둘 다 이 함수를 쓴다. 상세에만 있는 값은 있을 때만 채운다. */
+  function kciToWork(k) {
+    const w = {
+      title:              [k.titleKo || k.titleEn || ''],
+      'container-title':  [k.journal || ''],
+      publisher:          k.publisher || '',
+      volume:             k.volume || '',
+      issue:              k.issue  || '',
+      page:               k.fpage ? (k.fpage + (k.lpage ? '-' + k.lpage : '')) : '',
+      DOI:                k.doi || '',
+      type:               'journal-article',
+      ISSN:               k.issn ? [k.issn] : [],
+      _kci: {                       // KCI에서만 나오는 값 (상세 화면에서 칸을 덮어쓴다)
+        id:    k.id || '',
+        reg:   k.kciReg || '',      // 등재 / 등재후보 …
+        url:   k.url || '',
+        titleEn: k.titleEn || ''
+      }
+    };
+
+    /* 발행일 — KCI는 연·월까지만 준다(일자 없음).
+       published-print 에도 넣는 이유: 이게 없으면 '온라인 전용'으로 오인된다. */
+    const y = parseInt(k.pubYear, 10), m = parseInt(k.pubMon, 10);
+    if (y) {
+      const dp = { 'date-parts': [ m ? [y, m] : [y] ] };
+      w.published = dp;
+      w['published-print'] = dp;
+    }
+
+    /* 저자 — KCI의 author-part(제1/교신/참여)를 CrossRef의 sequence/role로 옮긴다.
+       이렇게 두면 기존 authorsHtml()이 교신저자를 알아서 찾아낸다. */
+    if (k.authors && k.authors.length) {
+      w.author = k.authors.map(function (a) {
+        return {
+          name:        a.name || a.nameEng || '',
+          sequence:    (a.part === '제1') ? 'first' : 'additional',
+          role:        (a.part === '교신') ? 'corresponding' : '',
+          affiliation: a.inst ? [{ name: a.inst }] : []
+        };
+      });
+    }
+
+    if (k.abstractKo || k.abstractEn) w.abstract = k.abstractKo || k.abstractEn;
+    if (typeof k.citedKci === 'number') w['is-referenced-by-count'] = k.citedKci;
+    return w;
+  }
+
+  /* CrossRef 결과와 KCI 결과를 합친다.
+     같은 논문이 양쪽에 다 있을 수 있으므로 중복을 걸러야 한다.
+       1순위 DOI — 가장 확실한 열쇠
+       2순위 제목 — DOI가 없는 논문끼리 비교 (normText로 띄어쓰기·부호 차이를 흡수)
+     겹치면 CrossRef 쪽을 남긴다(권/호·페이지 등 서지 정보가 더 정확한 편). */
+  function mergePaperResults(crItems, kciItems) {
+    const seenDoi = {}, seenTitle = {};
+    const out = [];
+
+    function keyDoi(w)   { return String(w.DOI || '').trim().toLowerCase(); }
+    function keyTitle(w) { return normText((w.title || []).join(' ')); }
+
+    crItems.forEach(function (w) {
+      const d = keyDoi(w), t = keyTitle(w);
+      if (d) seenDoi[d] = 1;
+      if (t) seenTitle[t] = 1;
+      out.push(w);
+    });
+
+    kciItems.forEach(function (k) {
+      const w = kciToWork(k);
+      const d = keyDoi(w), t = keyTitle(w);
+      if (d && seenDoi[d]) return;          // DOI가 같으면 이미 있는 논문
+      if (!d && t && seenTitle[t]) return;  // DOI가 없으면 제목으로 판단
+      if (d) seenDoi[d] = 1;
+      if (t) seenTitle[t] = 1;
+      out.push(w);
+    });
+
+    return out;
+  }
+
+  /* KCI 논문을 선택했을 때 — 상세를 다시 불러 ISSN·등재구분·교신저자까지 채운다.
+     (목록 응답에는 이 값들이 없다. CrossRef가 목록→상세 2단계인 것과 같은 구조) */
+  async function selectKciItem(w, idx, fromPopstate) {
+    if (!fromPopstate) {
+      try { history.pushState({ panel: 'doi', view: 'detail', idx: idx }, ''); } catch(e) {}
+    }
+    setLoading('result-area', '상세 정보 조회 중...');
+    document.getElementById('sr-area').innerHTML = '';
+    try {
+      const res  = await fetch(APPS_SCRIPT_URL + '?action=kci&type=detail&id=' + encodeURIComponent(w._kci.id));
+      const json = await res.json();
+      if (json.error || !json.item) throw {type:'network'};
+      const full = kciToWork(json.item);
+      renderResult(full, full.DOI || '');
+    } catch(e) { showError('result-area', e); }
   }
 
   function renderSearchList(items) {
@@ -1687,8 +1810,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     const idxList = paperSortedIdx(showAll ? all.map((_, i) => i) : matched);
 
     const pageIdx = pageSlice('paper', idxList);
-    const shownCount = showAll ? all.length : matched.length;
-    const title = '검색 결과 ' + shownCount + '건 — 해당 논문을 선택하세요';
+    const title = '검색 결과 ' + idxList.length + '건 — 해당 논문을 선택하세요';
 
     let html = '<div class="search-results"><div class="sr-header"><span class="sr-title">' + title + '</span>'
              + '<span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' + sortBarHtml('paper') + '</span>'
@@ -1705,6 +1827,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
       html += '<div class="sr-item" onclick="selectItem(' + i + ')">'
         + '<div class="sr-item-title">' + t + '</div>'
         + '<div class="sr-item-meta">'
+        + (w._kci ? '<span class="src-tag src-kci">KCI</span>' : '<span class="src-tag src-cr">CrossRef</span>')
         + (journal ? '<span>' + journal + '</span>' : '')
         + (year ? '<span>' + year + '</span>' : '')
         + (vol || iss ? '<span>' + [vol, iss].filter(Boolean).join(' ') + '</span>' : '')
@@ -1719,6 +1842,9 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 
   async function selectItem(idx, fromPopstate) {
     const w = window._srItems[idx];
+    if (!w) return;
+    // KCI 논문은 CrossRef에 없으므로 KCI 상세 조회로 보낸다
+    if (w._kci) return selectKciItem(w, idx, fromPopstate);
     const doi = w.DOI;
     if (!doi) return;
     // 목록 → 상세로 들어가는 것도 하나의 '단계'로 방문기록에 남긴다.
@@ -1814,14 +1940,16 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     /* 복사 데이터 */
     _copyData = { title, journal, publisher, volume, issue, pageStart, pageEnd, pubDate, onlineDate, acceptDate, doi,
       issn: issnRaw.join(', '), cited, abstract: abstractRaw || '',
-      country: '',                       // 발행국가 — OpenAlex 조회 성공 시 loadCountry가 채운다
+      country: w._kci ? '대한민국 (KR)' : '',   // KCI 논문은 확정, 그 외는 loadCountry가 채운다
       authors: authors.map(crossrefName).filter(Boolean) };
 
     /* 렌더 */
     let h = '<div class="result-card">';
 
     /* 헤더 */
-    h += '<div class="rc-header"><div class="rc-header-left"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>조회 완료 — CrossRef 데이터베이스</span></div>';
+    const _isKci = !!w._kci;
+    h += '<div class="rc-header"><div class="rc-header-left"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>조회 완료 — '
+       + (_isKci ? 'KCI 한국학술지인용색인' : 'CrossRef 데이터베이스') + '</span></div>';
     h += '<button class="copy-btn" id="copy-btn" onclick="copyInfo()"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>서지정보 복사</button></div>';
 
     /* 권/호 확정 여부 판단 */
@@ -1882,15 +2010,25 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 
     /* 5행: 학술지 구분 | 학술지 게재일자 */
     const gaejae = acceptDate || onlineDate;
-    h += cell('학술지 구분', lookupCell('KCI', issnRaw));
+    /* KCI 논문은 등재구분(등재/등재후보/우수등재)을 직접 받아오므로 그 값을 쓴다.
+       CrossRef 논문은 알 수 없으므로 지금처럼 KCI 사이트 링크로 안내한다. */
+    h += (_isKci && w._kci.reg)
+       ? cell('학술지 구분', 'KCI ' + esc(w._kci.reg))
+       : cell('학술지 구분', lookupCell('KCI', issnRaw));
     h += cell('학술지 게재일자', gaejae ? esc(gaejae) + (onlineDate && !acceptDate ? ' <span style="font-size:14px;color:var(--tm);">(온라인)</span>' : '') : '-');
 
     /* 6행: 발행국가 | 학술지 출판일자
        ※ ISSN이 있으면 OpenAlex로 자동 조회한다(렌더 후 loadCountry가 채움).
          ISSN이 없으면 조회할 방법이 없으니 곧바로 '직접 입력 필요'로 둔다. */
-    h += cell('발행국가',
-              issnRaw.length ? countryPendingHtml(issnRaw) : lookupCell('ISSN_PORTAL', issnRaw),
-              false, undefined, 'country-cell');
+    /* KCI 등재 논문은 정의상 국내 학술지 → OpenAlex 조회 없이 확정.
+       (해외 출판사 대행 때 국가가 틀어지던 문제가 여기서는 아예 없다) */
+    if (_isKci) {
+      h += cell('발행국가', '대한민국 (KR)', false, '대한민국 (KR)');
+    } else {
+      h += cell('발행국가',
+                issnRaw.length ? countryPendingHtml(issnRaw) : lookupCell('ISSN_PORTAL', issnRaw),
+                false, undefined, 'country-cell');
+    }
     h += cell('학술지 출판일자', pubDate ? esc(pubDate) : '-');
 
     /* 7행: DOI 번호 | 국제공동연구 */
@@ -1933,7 +2071,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 
     h += '</div></div>'; /* rc-body, result-card */
     document.getElementById('result-area').innerHTML = h;
-    loadCountry(issnRaw);      // 발행국가는 화면을 먼저 그린 뒤 뒤이어 채운다
+    if (!_isKci) loadCountry(issnRaw);   // KCI 논문은 이미 확정값이라 조회하지 않는다
     saveHistory(title, doi);
     renderHistory();
   }
