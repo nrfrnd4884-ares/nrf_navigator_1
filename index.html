@@ -1975,7 +1975,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     /* ※ IRIS 논문 성과입력 화면과 '같은 순서'로 배치한다.
          연구자가 두 화면을 위에서 아래로 나란히 훑으며 옮겨 적을 수 있게 하기 위함.
          IRIS 순서: 게재 시작·종료 페이지 → SCIE 구분 → 학술지명 → 볼륨번호 권(호) → ISSN
-                   → 학술지구분 → 학술지 게재일자 → 발행국가 → 학술지 출판일자 → DOI */
+                   → 학술지 게재일자 → 발행국가 → 학술지 출판일자 → DOI */
 
     /* 1행: 게재 시작 페이지 | 게재 종료 페이지  (IRIS도 입력칸이 두 개) */
     h += cell('게재 시작 페이지', pageStart ? esc(pageStart) : '-');
@@ -1991,22 +1991,13 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     h += cell('볼륨번호 - 권(호)', volIssue);
     h += cell('ISSN', issnHtml(), false, issnRaw.join(';'));
 
-    /* 4행: 임팩트팩터 | (빈 칸)
-       ※ IRIS 필수 항목이지만 JCR(Clarivate) 유료 데이터라 자동으로 채울 수 없다.
-         IRIS도 ISSN 다음 줄에 두므로 같은 위치에 배치한다. */
+    /* 4행: 임팩트팩터 | 학술지 게재일자
+       ※ 임팩트팩터는 IRIS 필수 항목이지만 JCR(Clarivate) 유료 데이터라 자동으로 채울 수 없다. */
     h += cell('임팩트팩터', lookupCell('JCR', issnRaw));
-    h += fillCells(1);
-
-    /* 5행: 학술지 구분 | 학술지 게재일자 */
     const gaejae = acceptDate || onlineDate;
-    /* KCI 논문은 등재구분(등재/등재후보/우수등재)을 직접 받아오므로 그 값을 쓴다.
-       CrossRef 논문은 알 수 없으므로 지금처럼 KCI 사이트 링크로 안내한다. */
-    h += (_isKci && w._kci.reg)
-       ? cell('학술지 구분', 'KCI ' + esc(w._kci.reg))
-       : cell('학술지 구분', lookupCell('KCI', issnRaw));
     h += cell('학술지 게재일자', gaejae ? esc(gaejae) + (onlineDate && !acceptDate ? ' <span style="font-size:14px;color:var(--tm);">(온라인)</span>' : '') : '-');
 
-    /* 6행: 발행국가 | 학술지 출판일자
+    /* 5행: 발행국가 | 학술지 출판일자
        ※ ISSN이 있으면 OpenAlex로 자동 조회한다(렌더 후 loadCountry가 채움).
          ISSN이 없으면 조회할 방법이 없으니 곧바로 '직접 입력 필요'로 둔다. */
     /* KCI 등재 논문은 정의상 국내 학술지 → OpenAlex 조회 없이 확정.
@@ -2020,7 +2011,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     }
     h += cell('학술지 출판일자', pubDate ? esc(pubDate) : '-');
 
-    /* 7행: DOI 번호 | 국제공동연구 */
+    /* 6행: DOI 번호 | 국제공동연구 */
     h += cell('DOI 번호', '<span class="cell-v mono">' + esc(doi) + '</span>', false, doi);
     if (isIntl !== null) {
       h += cell('국제공동연구', isIntl ? '<span class="badge b-intl">예</span>' : '<span class="badge b-dom">아니오</span>');
@@ -2077,10 +2068,6 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
       // Web of Science 등재 여부(SCIE/비SCIE) 확인 — Clarivate 공식 조회처
       url = 'https://mjl.clarivate.com/search-results';
       label = 'Web of Science에서 확인';
-    } else if (kind === 'KCI') {
-      // 국내 학술지 등재 여부 확인
-      url = 'https://www.kci.go.kr';
-      label = 'KCI에서 확인';
     } else if (kind === 'JCR') {
       // 임팩트팩터는 JCR(유료) 데이터. 기관 로그인이 필요할 수 있다.
       url = 'https://jcr.clarivate.com';
