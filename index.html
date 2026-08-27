@@ -235,12 +235,9 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
                overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .q-meta { font-size:11px;color:var(--tm);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;align-items:center; }
 
-  /* ── 본인 질문 찾기 (접수번호 / 내 질문만 보기) ──
+  /* ── 본인 질문 찾기 (닉네임 검색 / 내 질문만 보기) ──
      게시판이 익명이라 '누가 썼는지'로는 본인 글을 찾을 수 없다.
-     그래서 세 가지 단서를 함께 둔다 —
-       ① 닉네임 검색  ② 접수번호 검색  ③ 이 브라우저에서 쓴 글만 보기 */
-  .q-code { font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);
-            background:var(--accent-l);padding:1px 6px;border-radius:4px; }
+     그래서 두 가지 단서를 둔다 — ① 닉네임 검색  ② 이 브라우저에서 쓴 글만 보기 */
   .q-mine { font-size:11px;font-weight:600;color:#fff;background:var(--teal);
             padding:1px 7px;border-radius:10px; }
   .mine-btn { padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:12px;
@@ -248,8 +245,6 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
               cursor:pointer;transition:all 0.12s; }
   .mine-btn:hover { background:var(--accent-l);color:var(--accent);border-color:var(--accent-m); }
   .mine-btn.active { background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600; }
-  .receipt-code { font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;
-                  color:var(--accent);letter-spacing:0.04em; }
   .q-status { font-size:11px;font-weight:600;margin-left:auto;white-space:nowrap;padding-top:2px; }
   .q-status.done { color:var(--success); }
   .q-status.wait { color:var(--tm); }
@@ -1174,7 +1169,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 
     <!-- 검색창 -->
     <div style="margin-bottom:14px;">
-      <input id="board-search" type="text" placeholder="질문 내용 · 닉네임 · 접수번호로 검색..." oninput="boardSearch(this.value)"
+      <input id="board-search" type="text" placeholder="질문 내용 · 닉네임으로 검색..." oninput="boardSearch(this.value)"
         style="width:100%;height:42px;padding:0 14px 0 40px;border:1px solid var(--border2);border-radius:var(--r2);font-size:14px;font-family:inherit;color:var(--tp);background:var(--surface) url('data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a93a2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E') no-repeat 14px center;background-size:16px;outline:none;transition:border-color 0.15s,box-shadow 0.15s;"
         onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(76,104,187,0.16)'"
         onblur="this.style.borderColor='';this.style.boxShadow=''"/>
@@ -1184,7 +1179,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;" id="cat-filters">
         <button class="cat-btn active" onclick="filterCat('전체',this)">전체</button>
       </div>
-      <!-- 이 브라우저에서 작성한 질문만 추려 보여준다 (작성 시 접수번호를 브라우저에 저장) -->
+      <!-- 이 브라우저에서 작성한 질문만 추려 보여준다 (작성 시 질문 ID를 브라우저에 저장) -->
       <button id="mine-btn" class="mine-btn" onclick="toggleMineOnly()" style="margin-left:auto;display:none;">
         내 질문만 보기
       </button>
@@ -1200,19 +1195,13 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
           <button onclick="closeWriteModal()" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:20px;line-height:1;padding:0;">×</button>
         </div>
 
-        <!-- 제출 완료 안내 — 접수번호를 알려주고 메모하도록 유도한다.
-             게시판이 익명이라 이 번호가 본인 질문을 다시 찾는 가장 확실한 단서다. -->
-        <div id="write-receipt" style="display:none;padding:24px 20px;text-align:center;">
+        <!-- 제출 완료 안내 -->
+        <div id="write-receipt" style="display:none;padding:28px 20px;text-align:center;">
           <div style="font-size:32px;line-height:1;margin-bottom:10px;">✅</div>
-          <div style="font-size:15px;font-weight:600;color:var(--tp);margin-bottom:16px;">질문이 등록되었습니다.</div>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;">
-            <div style="font-size:12px;color:var(--tm);margin-bottom:6px;">접수번호</div>
-            <div id="receipt-code" class="receipt-code">-</div>
-            <button onclick="copyReceipt(this)" style="margin-top:10px;height:32px;padding:0 14px;border:1px solid var(--border2);border-radius:6px;background:#fff;font-size:12px;font-family:inherit;color:var(--ts);cursor:pointer;">번호 복사</button>
-          </div>
-          <p style="font-size:12.5px;color:var(--tm);line-height:1.7;margin-bottom:18px;">
-            이 번호를 검색창에 입력하면 내 질문과 답변을 다시 찾을 수 있습니다.<br>
-            같은 브라우저에서는 <strong>내 질문만 보기</strong>로도 확인할 수 있습니다.
+          <div style="font-size:15px;font-weight:600;color:var(--tp);margin-bottom:12px;">질문이 등록되었습니다.</div>
+          <p style="font-size:12.5px;color:var(--tm);line-height:1.7;margin-bottom:20px;">
+            답변이 등록되면 게시판에서 확인하실 수 있습니다.<br>
+            같은 브라우저에서는 <strong>내 질문만 보기</strong>로 찾을 수 있습니다.
           </p>
           <button onclick="closeWriteModal()" style="height:38px;padding:0 24px;background:var(--accent);border:none;border-radius:6px;font-size:13px;font-weight:500;font-family:inherit;color:#fff;cursor:pointer;">확인</button>
         </div>
@@ -2369,20 +2358,11 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
   let _boardKeyword = '';
 
   /* ══ 본인 질문 찾기 ══
-     게시판은 익명이라 작성자를 특정할 수 없다. 세 가지 단서를 함께 제공한다.
+     게시판은 익명이라 작성자를 특정할 수 없다. 두 가지 단서를 제공한다.
 
-     ① 접수번호  — 백엔드가 저장 시 발급하는 ID(작성 시각의 밀리초)를 사람이 읽을 수
-                  있는 짧은 코드로 바꿔 보여준다. 같은 ID는 항상 같은 코드가 되므로
-                  목록 쪽에서도 똑같이 계산해 검색·대조할 수 있다.
-     ② 닉네임    — 검색 대상에 포함(아래 renderBoard).
-     ③ 내 질문만 — 작성한 ID를 이 브라우저에 남겨두고 그것만 추려 보여준다.
+     ① 닉네임    — 검색 대상에 포함(아래 renderBoard).
+     ② 내 질문만 — 작성한 ID를 이 브라우저에 남겨두고 그것만 추려 보여준다.
                   다른 PC·다른 브라우저·시크릿 모드에서는 남지 않는다. */
-
-  function qCode(id) {
-    const n = Number(id);
-    if (!n || isNaN(n)) return '';
-    return 'Q-' + n.toString(36).toUpperCase();
-  }
 
   const MY_IDS_KEY = 'nrf_board_my_ids';
   let _myIds = [];            // 이 브라우저에서 작성한 질문의 ID 목록
@@ -2397,12 +2377,17 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     } catch (e) { _myIds = []; }
     updateMineBtn();
   }
+  /* ※ 저장 직전에 저장소를 한 번 더 읽는다.
+       이 함수는 게시판을 거치지 않고 바로 질문을 쓴 경우에도 불릴 수 있는데,
+       그때는 메모리 속 목록이 비어 있다. 그대로 저장하면 예전에 쓴 질문 번호가
+       통째로 덮어써져 '내 질문' 표시가 사라진다. */
   function rememberMyId(id) {
     if (!id) return;
     try {
-      if (!_myIds.includes(id)) _myIds.push(id);
+      loadMyIds();                                  // 저장소의 최신 상태로 맞춘 뒤
+      if (!_myIds.some(v => String(v) === String(id))) _myIds.push(id);
       localStorage.setItem(MY_IDS_KEY, JSON.stringify(_myIds));
-    } catch (e) { /* 저장 실패해도 접수번호로 찾을 수 있으므로 그냥 넘어간다 */ }
+    } catch (e) { /* 저장 실패해도 닉네임 검색으로 찾을 수 있으므로 그냥 넘어간다 */ }
     updateMineBtn();
   }
   // 저장된 ID와 게시판 글의 ID를 비교한다 (숫자/문자 형태가 달라도 맞도록 문자열로 비교)
@@ -2410,9 +2395,9 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     return _myIds.some(v => String(v) === String(id));
   }
   /* 방금 등록한 질문인지 판단한다.
-     접수번호(ID)가 작성 시각의 밀리초라서 현재 시각과 비교하면 알 수 있다.
+     질문 ID가 작성 시각의 밀리초라서 현재 시각과 비교하면 알 수 있다.
      ※ 등록 직후에는 아직 목록을 다시 받아오기 전이라 '게시판에 없는 글'처럼 보인다.
-       이때 정리 대상으로 잘못 판단하면 방금 받은 접수번호가 곧바로 지워진다.
+       이때 정리 대상으로 잘못 판단하면 방금 작성한 질문이 목록에서 곧바로 빠진다.
        그래서 갓 만든 번호는 목록에 없더라도 살아 있는 것으로 본다.
        보호 시간은 1분 — 서버 반영 지연을 흡수하기에 충분하고,
        글이 삭제됐을 때 어색하게 남아 보이는 시간도 짧다. */
@@ -2445,7 +2430,8 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 
   /* 삭제된 글의 번호를 저장소에서 정리한다.
      목록을 새로 받아온 직후에만 부른다(loadBoard). 등록 직후에는 부르지 않는다.
-     목록이 비어 있으면(불러오기 실패 가능) 정리를 건너뛴다. */
+     목록이 비어 있으면(불러오기 실패 가능) 정리를 건너뛴다.
+     ※ 정리는 되돌릴 수 없으므로, 목록을 확실히 받아온 경우에만 수행한다. */
   function pruneMyIds() {
     if (!_allItems.length) return;
     const alive = myLiveIds();
@@ -2459,15 +2445,6 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     resetPage('board');
     updateMineBtn();
     renderBoard();
-  }
-
-  function copyReceipt(btn) {
-    const code = document.getElementById('receipt-code').textContent;
-    navigator.clipboard.writeText(code).then(function () {
-      const old = btn.textContent;
-      btn.textContent = '복사됨';
-      setTimeout(function () { btn.textContent = old; }, 1200);
-    }).catch(function () {});
   }
 
   function boardSearch(val) {
@@ -2503,15 +2480,14 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
         (x.title || '').toLowerCase().includes(_boardKeyword) ||
         x.question.toLowerCase().includes(_boardKeyword) ||
         x.answer.toLowerCase().includes(_boardKeyword)   ||
-        (x.nickname || '').toLowerCase().includes(_boardKeyword) ||
-        qCode(x.id).toLowerCase().includes(_boardKeyword)   // 'Q-XXXX' 전체·일부 모두 매칭
+        (x.nickname || '').toLowerCase().includes(_boardKeyword)
       );
     }
     if (!items.length) {
       // 왜 비어 있는지에 따라 안내를 다르게 한다 (검색 실패인지, 글이 없는지)
       let msg = '등록된 질문이 없습니다.<br>첫 번째로 질문해보세요!';
-      if (_mineOnly)          msg = '이 브라우저에서 작성한 질문이 없습니다.<br><span style="font-size:12px;color:var(--tm);">다른 PC에서 쓴 질문은 접수번호로 검색해 주세요.</span>';
-      else if (_boardKeyword) msg = '검색 결과가 없습니다.<br><span style="font-size:12px;color:var(--tm);">제목, 질문 내용, 닉네임, 접수번호로 찾을 수 있습니다.</span>';
+      if (_mineOnly)          msg = '이 브라우저에서 작성한 질문이 없습니다.<br><span style="font-size:12px;color:var(--tm);">다른 PC에서 쓴 질문은 닉네임으로 검색해 주세요.</span>';
+      else if (_boardKeyword) msg = '검색 결과가 없습니다.<br><span style="font-size:12px;color:var(--tm);">제목, 질문 내용, 닉네임으로 찾을 수 있습니다.</span>';
       el.innerHTML = '<div class="board-empty">' + msg + '</div>';
       return;
     }
@@ -2529,7 +2505,6 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
         + '<div class="q-title">' + esc(title) + '</div>'
         + '<div class="q-preview">' + esc(preview) + '</div>'
         + '<div class="q-meta"><span>' + esc(q.nickname||'익명') + '</span><span>' + esc(q.date) + '</span>'
-        + '<span class="q-code">' + qCode(q.id) + '</span>'
         + (isMine ? '<span class="q-mine">내 질문</span>' : '')
         + '</div>'
         + '</div>'
@@ -2577,18 +2552,13 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     try {
       const params = new URLSearchParams({ action:'submit', category:cat, nickname:nick, title:title, question:q });
       const res  = await fetch(APPS_SCRIPT_URL + '?' + params.toString());
-      /* 백엔드가 저장하면서 발급한 ID를 받아 접수번호로 쓴다.
+      /* 백엔드가 저장하며 발급한 ID를 받아 '내 질문' 표시에 쓴다.
          응답을 읽지 못하더라도(네트워크·CORS 등) 질문 자체는 이미 저장된 상태이므로
-         등록 실패로 처리하지 않고, 접수번호만 생략한 채 넘어간다. */
+         등록 실패로 처리하지 않는다. */
       let id = null;
       try { const json = await res.json(); id = json && json.id; } catch (e) {}
-      if (id) {
-        rememberMyId(id);
-        document.getElementById('receipt-code').textContent = qCode(id);
-        showReceiptView(true);
-      } else {
-        closeWriteModal();
-      }
+      if (id) rememberMyId(id);
+      showReceiptView(true);
       await loadBoard();
     } catch(e) {
       alert('제출 중 오류가 발생했습니다. 다시 시도해주세요.');
