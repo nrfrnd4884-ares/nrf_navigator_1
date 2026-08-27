@@ -1595,7 +1595,11 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 
   /* ── 제목 검색 ── */
   async function doSearchTitle() {
-    const q = document.getElementById('title-input').value.trim();
+    /* 한글을 완성형(NFC)으로 통일한다.
+       같은 '초음파'라도 기기·키보드에 따라 조합형(NFD, 자모 낱개)으로 입력될 수 있는데,
+       눈에는 똑같아 보여도 서버에는 전혀 다른 값으로 전달된다.
+       실제로 모바일에서만 KCI가 HTTP 500을 돌려주는 문제가 있었다. */
+    const q = normalizeQuery(document.getElementById('title-input').value);
     if (!q) { document.getElementById('title-input').focus(); return; }
     document.getElementById('doi-clear-bar').style.display = 'flex';
     updateScrollTopBtn();
@@ -1774,6 +1778,14 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 
   // 비교용 정규화 — 띄어쓰기·하이픈·문장부호를 지워 조사나 표기 차이를 흡수한다
   //  예) '초음파적 진단' 에서도 '초음파'와 '진단'을 찾아낼 수 있다
+  /* 검색어 다듬기 — 완성형 통일 + 앞뒤·중복 공백 제거.
+     ※ normalize를 지원하지 않는 아주 오래된 브라우저를 대비해 감싼다. */
+  function normalizeQuery(s) {
+    let v = String(s || '');
+    try { v = v.normalize('NFC'); } catch (e) {}
+    return v.replace(/\s+/g, ' ').trim();
+  }
+
   function normText(s) {
     return String(s || '').toLowerCase()
       .replace(/[\s\-–—_·:;,.()\[\]{}'"?!/\\]/g, '');
