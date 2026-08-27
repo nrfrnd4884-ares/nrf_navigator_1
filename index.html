@@ -202,8 +202,9 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 .faq-empty p { font-size: 14px; }
 
 @media (max-width: 640px) {
-  .header-inner { height: 60px; }
-  .logo img { height: 36px; }          /* 좁은 화면에서는 메뉴 버튼 자리를 확보 */
+  /* 모바일에서도 로고는 크게 유지한다.
+     390px 화면에서 48px 로고의 폭은 153px, 햄버거 버튼까지 169px이 남아 겹치지 않는다. */
+  .logo img { height: 48px; }
   main { padding: 20px 14px 60px; }
   .input-row { flex-direction: column; }
   .s-btn { width: 100%; justify-content: center; }
@@ -700,7 +701,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     header { padding: 0 14px; }
     main { padding: 14px 14px var(--main-pb); }
     .feedback-footer { padding: 0 14px; }
-    .header-inner { height: 58px; }
+    .header-inner { height: 64px; }   /* 48px 로고가 들어갈 높이 */
     .home-grid { grid-template-columns: 1fr; max-width: none; }
     .bottom-row { display: flex; flex-direction: column; }
     /* 세로로 쌓일 때는 다른 카드들과 같은 간격을 쓴다 */
