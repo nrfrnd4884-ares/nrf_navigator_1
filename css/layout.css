@@ -1,5 +1,6 @@
 /* ── 상단 유틸리티 바 ── */
 .topbar { background: var(--navy); color: #fff; font-size: var(--fs-16); }
+.topbar { position: relative; z-index: 100; }
 .topbar-inner { margin: 0 auto; padding: 7px 24px; display: flex; justify-content: flex-end; gap: 18px; }
 
 /* ── 헤더 ── */
@@ -17,17 +18,19 @@ header { background: #ffffff; border-bottom: 1px solid var(--border); padding: 0
 main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 .panel { display: none; }
 .panel.active { display: block; }
-/* index_10.html 원본 홈 화면 배경 */
+/* index_10.html 원본처럼 전체 페이지에 배경 레이어 적용 */
 html { background: var(--bg); }
 body { position: relative; }
-body.is-home { background: transparent; }
+body.is-home {
+  background: transparent;
+}
 
 /* ═══ 홈 배경 문양 (재단 메인 참고) ═══ */
 body.is-home::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   background:
     radial-gradient(980px 660px at 90% -8%, rgba(76,104,187,0.16), transparent 70%),
@@ -44,13 +47,18 @@ body.is-home::after {
   right: 0;
   width: min(64%, 940px);
   height: 540px;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   background: repeating-linear-gradient(142deg,
     rgba(76,104,187,0.055) 0 60px,
     rgba(76,104,187,0) 60px 200px);
   -webkit-mask-image: linear-gradient(258deg, #000 25%, transparent 88%);
   mask-image: linear-gradient(258deg, #000 25%, transparent 88%);
+}
+main, #app-feedback, #app-floating { position: relative; z-index: 1; }
+
+@media (max-width: 640px) {
+  body.is-home::after { width: 85%; height: 340px; }
 }
 
 /* 상세 화면은 메인 영역 가장자리와 콘텐츠가 붙지 않도록 공통 내부 여백을 둔다. */
@@ -59,4 +67,3 @@ body.is-home::after {
 @media (max-width: 640px) {
   .panel:not(#panel-home) { padding-inline: 0; }
 }
-
