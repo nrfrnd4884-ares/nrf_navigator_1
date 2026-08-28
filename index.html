@@ -1673,8 +1673,17 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
   /* KCI 한 건 → CrossRef 형태의 객체.
      목록(간략)과 상세(전체) 둘 다 이 함수를 쓴다. 상세에만 있는 값은 있을 때만 채운다. */
   function kciToWork(k) {
+    /* 제목은 국문·영문을 모두 담는다.
+       화면에는 첫 번째(국문 우선)만 쓰지만, 정확도 필터는 배열 전체를 이어 붙여
+       대조하므로 영문 제목의 단어로도 찾을 수 있게 된다.
+       (한 개만 담으면 'transparent ultrasound' 같은 영문 검색이 0건이 된다) */
+    const titles = [];
+    if (k.titleKo) titles.push(k.titleKo);
+    if (k.titleEn && k.titleEn !== k.titleKo) titles.push(k.titleEn);
+    if (!titles.length) titles.push('');
+
     const w = {
-      title:              [k.titleKo || k.titleEn || ''],
+      title:              titles,
       'container-title':  [k.journal || ''],
       publisher:          k.publisher || '',
       volume:             k.volume || '',
@@ -1727,23 +1736,29 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     const seenDoi = {}, seenTitle = {};
     const out = [];
 
-    function keyDoi(w)   { return String(w.DOI || '').trim().toLowerCase(); }
-    function keyTitle(w) { return normText((w.title || []).join(' ')); }
+    function keyDoi(w)    { return String(w.DOI || '').trim().toLowerCase(); }
+    /* 제목은 여러 개일 수 있으므로(국문·영문) 하나씩 따로 대조한다.
+       이어 붙여서 비교하면 국문+영문 덩어리가 CrossRef의 영문 제목 하나와 달라
+       같은 논문인데도 중복을 못 걸러낸다. */
+    function keysTitle(w) {
+      return (w.title || []).map(normText).filter(Boolean);
+    }
 
     crItems.forEach(function (w) {
-      const d = keyDoi(w), t = keyTitle(w);
+      const d = keyDoi(w);
       if (d) seenDoi[d] = 1;
-      if (t) seenTitle[t] = 1;
+      keysTitle(w).forEach(function (t) { seenTitle[t] = 1; });
       out.push(w);
     });
 
     kciItems.forEach(function (k) {
-      const w = kciToWork(k);
-      const d = keyDoi(w), t = keyTitle(w);
-      if (d && seenDoi[d]) return;          // DOI가 같으면 이미 있는 논문
-      if (!d && t && seenTitle[t]) return;  // DOI가 없으면 제목으로 판단
+      const w  = kciToWork(k);
+      const d  = keyDoi(w);
+      const ts = keysTitle(w);
+      if (d && seenDoi[d]) return;                              // DOI가 같으면 이미 있는 논문
+      if (!d && ts.some(function (t) { return seenTitle[t]; })) return;  // DOI가 없으면 제목으로 판단
       if (d) seenDoi[d] = 1;
-      if (t) seenTitle[t] = 1;
+      ts.forEach(function (t) { seenTitle[t] = 1; });
       out.push(w);
     });
 
