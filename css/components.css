@@ -13,7 +13,7 @@
   .check-card { background: var(--warn-bg); border: 1px solid var(--warn-border); border-left: 3px solid var(--warning); border-radius: 0 var(--r) var(--r) 0; padding: 16px 18px; margin-bottom: 16px; }
   .check-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .check-head svg { width: 17px; height: 17px; fill: none; stroke: var(--warning); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-  .check-title { font-size: var(--fs-16); font-weight: var(--fw-bold); color: var(--warning); }
+  .check-title { font-size: var(--fs-20); font-weight: var(--fw-bold); color: var(--warning); }
   .check-desc { font-size: var(--fs-16); color: var(--ts); line-height: 1.65; margin-bottom: 10px; }
   .check-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
   .check-list li { position: relative; padding-left: 22px; font-size: var(--fs-15); color: var(--tp); line-height: 1.55; }
@@ -251,8 +251,6 @@
   .home-card.wide .home-card-icon { flex-shrink: 0; }
   .home-card:focus-visible { border-color: var(--accent); box-shadow: var(--focus); }
 
-  /* 사이드바 스타일은 css/panel.css에서 관리합니다. */
-
   /* 햄버거 */
   .nav-toggle { display: none; width: 40px; height: 40px; border: 1px solid var(--border);
                 border-radius: var(--r2); background: var(--surface); cursor: pointer;
@@ -409,4 +407,5 @@
     .chat-bubble { max-width: 88%; }
     .stat-cell { padding: 12px 14px; }
   }
+
 

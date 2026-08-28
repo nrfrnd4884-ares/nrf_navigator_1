@@ -47,6 +47,7 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-7: 32px;
+  --space-ex: 120px;
   --radius-sm: var(--r2);
   --radius-md: var(--r);
   --shadow-card: var(--sh);

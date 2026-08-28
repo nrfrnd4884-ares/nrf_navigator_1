@@ -1,7 +1,7 @@
 /* CSS entry point: keep imports in the original cascade order. */
 @import url("base.css");
 @import url("layout.css");
-@import url("panel.css");
+@import url("sidebar.css");
 @import url("search.css");
 @import url("cs-board.css");
 @import url("feedback-bar.css");
