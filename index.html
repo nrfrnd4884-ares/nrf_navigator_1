@@ -1569,7 +1569,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
     const doi = raw.replace(/^https?:\/\/doi\.org\//i,'').replace(/^doi:\s*/i,'').trim();
     const btn = document.getElementById('doi-btn');
     document.getElementById('sr-area').innerHTML = '';
-    _kciWarn = '';   // DOI 직접 조회는 KCI를 쓰지 않으므로 이전 경고를 지운다
+    _kciFailed = false;   // DOI 직접 조회는 KCI를 쓰지 않으므로 이전 경고를 지운다
     setLoading('result-area', 'CrossRef에서 조회 중...'); btn.disabled = true;
     try {
       const res = await fetch('https://api.crossref.org/works/' + encodeURIComponent(doi));
@@ -1644,11 +1644,9 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
          실제로는 조회가 안 된 것이므로 사유를 남겨 목록 위에 알린다.
          (KIPRIS 키 만료를 '검색 결과 없음'으로 오인했던 것과 같은 함정) */
       let kciItems = [];
-      _kciWarn = '';
+      _kciFailed = false;
       if (kciRes.status === 'rejected' || (kciRes.value && kciRes.value.error)) {
-        // 이용자에게는 짧게 알리고, 원인 문구는 개발자 도구에만 남긴다
-        _kciWarn = '국내 학술지(KCI) 조회를 일시적으로 이용할 수 없습니다. '
-                 + '국내 논문은 결과에서 빠져 있을 수 있습니다.';
+        _kciFailed = true;   // 실패 사실만 기록. 알릴지 말지는 화면 그릴 때 판단한다
         console.warn('KCI 조회 실패:',
           kciRes.status === 'rejected' ? kciRes.reason : kciRes.value.error);
       } else {
@@ -1783,7 +1781,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
        → 검색어의 모든 낱말이 제목에 들어 있는 것만 먼저 보여주고,
          나머지는 화면에 내보내지 않는다. */
   let _srQuery   = '';      // 마지막 검색어
-  let _kciWarn   = '';      // KCI 조회가 실패했을 때의 사유 (목록 위에 표시)
+  let _kciFailed = false;   // 이번 검색에서 KCI 조회가 실패했는지
 
   // 비교용 정규화 — 띄어쓰기·하이픈·문장부호를 지워 조사나 표기 차이를 흡수한다
   //  예) '초음파적 진단' 에서도 '초음파'와 '진단'을 찾아낼 수 있다
@@ -1848,7 +1846,17 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 
     let html = '<div class="search-results">';
     // KCI가 빠진 채 CrossRef 결과만 보이는 상황을 이용자가 알 수 있게 한다
-    if (_kciWarn) html += '<div class="src-warn">⚠ ' + esc(_kciWarn) + '</div>';
+    /* KCI가 실패했어도 무조건 알리지는 않는다.
+       찾던 논문이 CrossRef에서 이미 나왔는데 '빠졌을 수 있다'고 하면
+       잘 찾은 사용자에게 불안만 준다. 정말 아쉬울 때만 알린다.
+         · 결과가 아예 없을 때
+         · 한글 검색이라 국내 논문일 가능성이 높은데 결과가 적을 때
+       (영문 검색은 해외 논문을 찾는 경우가 대부분이라 KCI가 빠져도 영향이 적다) */
+    const looksKorean = /[가-힣]/.test(_srQuery);
+    if (_kciFailed && (idxList.length === 0 || (looksKorean && idxList.length < 10))) {
+      html += '<div class="src-warn">⚠ 국내 학술지(KCI) 조회를 일시적으로 이용할 수 없습니다. '
+            + '찾는 논문이 없다면 잠시 후 다시 시도해 주세요.</div>';
+    }
     html += '<div class="sr-header"><span class="sr-title">' + title + '</span>'
           + '<span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' + sortBarHtml('paper') + '</span>'
           + '</div><div class="sr-list">';
