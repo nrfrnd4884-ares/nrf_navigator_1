@@ -1809,8 +1809,18 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
   }
 
   function normText(s) {
-    return String(s || '').toLowerCase()
-      .replace(/[\s\-–—_·:;,.()\[\]{}'"?!/\\]/g, '');
+    let v = String(s || '');
+    /* 악센트를 떼어낸다.
+       외국 인명이 든 제목은 'Erdős-Pósa'처럼 악센트가 붙어 있는데,
+       사용자는 키보드로 칠 수 있는 'Erdos-Posa'로 입력한다.
+       이 둘을 다른 글자로 보면 정확히 일치하는 결과가 0건이 되어,
+       엉뚱한 논문이 잔뜩 뜨는 화면이 된다.
+       NFD로 글자와 악센트를 분리한 뒤 악센트 기호만 지운다.
+       (한글은 자모로 쪼개지므로 마지막에 NFC로 되돌린다) */
+    try {
+      v = v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').normalize('NFC');
+    } catch (e) {}
+    return v.toLowerCase().replace(/[\s\-–—_·:;,.()\[\]{}'"?!/\\]/g, '');
   }
 
   // 검색어의 모든 낱말이 제목에 포함된 항목의 '전체 목록 기준 번호'를 돌려준다
