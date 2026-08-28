@@ -87,8 +87,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 /* 한쪽 데이터베이스 조회가 실패했을 때 목록 위에 띄우는 알림 */
 .src-warn { margin-bottom: 10px; padding: 9px 13px; border-radius: var(--r2);
             background: #fdf4e4; border: 1px solid #f1ddb9; color: #9a6410;
-            font-size: 13px; line-height: 1.55; word-break: break-word;
-            white-space: pre-wrap; }   /* 진단 문구가 길어도 잘리지 않게 */
+            font-size: 13px; line-height: 1.55; word-break: keep-all; }
 /* 검색 결과가 어느 데이터베이스에서 왔는지 표시 */
 .src-tag { font-size:11px; font-weight:700; padding:1px 6px; border-radius:3px; letter-spacing:0.2px; }
 .src-kci { background:#e8f1e8; color:#2f6b3d; border:1px solid #cfe3d2; }
@@ -1646,10 +1645,12 @@ main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
          (KIPRIS 키 만료를 '검색 결과 없음'으로 오인했던 것과 같은 함정) */
       let kciItems = [];
       _kciWarn = '';
-      if (kciRes.status === 'rejected') {
-        _kciWarn = '국내 학술지(KCI) 조회에 실패했습니다. 네트워크 상태를 확인해 주세요.';
-      } else if (kciRes.value && kciRes.value.error) {
-        _kciWarn = '국내 학술지(KCI) 조회 오류 — ' + kciRes.value.error;
+      if (kciRes.status === 'rejected' || (kciRes.value && kciRes.value.error)) {
+        // 이용자에게는 짧게 알리고, 원인 문구는 개발자 도구에만 남긴다
+        _kciWarn = '국내 학술지(KCI) 조회를 일시적으로 이용할 수 없습니다. '
+                 + '국내 논문은 결과에서 빠져 있을 수 있습니다.';
+        console.warn('KCI 조회 실패:',
+          kciRes.status === 'rejected' ? kciRes.reason : kciRes.value.error);
       } else {
         kciItems = (kciRes.value && kciRes.value.items) || [];
       }
