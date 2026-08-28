@@ -1,0 +1,26 @@
+  <div id="panel-notice" class="panel">
+    <div class="breadcrumb">
+      <button type="button" onclick="resetHome(event)">홈</button>
+      <span class="sep" aria-hidden="true">›</span>
+      <span class="current">공지사항</span>
+    </div>
+    <div class="page-head">
+      <div>
+        <h1 class="pg-title">공지사항</h1>
+        <p class="pg-desc">성과조사 관련 공지 및 자료를 확인하세요.</p>
+      </div>
+    </div>
+    <!-- 검색창 -->
+    <div class="html-style-029">
+      <label class="sr-only" for="notice-search">공지사항 검색</label>
+      <input class="html-style-030" id="notice-search" type="text" placeholder="공지사항 검색..." oninput="noticeSearch(this.value)"
+       
+        onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.16)'"
+        onblur="this.style.borderColor='';this.style.boxShadow=''"/>
+    </div>
+    <!-- 카테고리 필터 (동적 생성) -->
+    <div class="html-style-031" id="notice-filter-bar">
+      <button class="cat-btn active" onclick="noticeFilter('전체',this)">전체</button>
+    </div>
+    <div id="notice-list" aria-live="polite"><div class="loading-wrap"><div class="spinner"></div><span>불러오는 중...</span></div></div>
+  </div>

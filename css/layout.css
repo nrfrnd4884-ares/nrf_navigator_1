@@ -1,0 +1,69 @@
+/* ── 상단 유틸리티 바 ── */
+.topbar { background: var(--navy); color: #fff; font-size: var(--fs-16); }
+.topbar { position: relative; z-index: 100; }
+.topbar-inner { margin: 0 auto; padding: 7px 24px; display: flex; justify-content: flex-end; gap: 18px; }
+
+/* ── 헤더 ── */
+header { background: #ffffff; border-bottom: 1px solid var(--border); padding: 0 24px; position: sticky; top: 0; z-index: 100; }
+.header-inner { max-width: 1000px; margin: 0 auto; height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.logo { display: flex; align-items: center; text-decoration: none; }
+.logo-icon { width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+.logo-icon svg { width: 14px; height: 14px; fill: #fff; }
+#main-nav { display: flex; gap: 2px; }
+.nav-tab { padding: 6px 14px; border-radius: var(--r2); font-size: var(--fs-16); font-weight: var(--fw-medium); color: var(--ts); background: none; border: none; cursor: pointer; transition: background 0.15s, color 0.15s; }
+.nav-tab:hover { background: var(--surface2); color: var(--tp); }
+.nav-tab.active { background: var(--accent-l); color: var(--accent); }
+
+/* ── 메인 ── */
+main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+.panel { display: none; }
+.panel.active { display: block; }
+/* index_10.html 원본처럼 전체 페이지에 배경 레이어 적용 */
+html { background: var(--bg); }
+body { position: relative; }
+body.is-home {
+  background: transparent;
+}
+
+/* ═══ 홈 배경 문양 (재단 메인 참고) ═══ */
+body.is-home::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(980px 660px at 90% -8%, rgba(76,104,187,0.16), transparent 70%),
+    radial-gradient(900px 660px at 8% 106%, rgba(76,104,187,0.11), transparent 72%),
+    radial-gradient(1150px 600px at 48% -14%, rgba(76,104,187,0.07), transparent 72%),
+    linear-gradient(180deg, #eaf0fa 0%, rgba(244,247,251,0) 55%);
+}
+
+/* 우상단 사선 줄무늬 — 왼쪽으로 갈수록 사라지게 마스크 */
+body.is-home::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(64%, 940px);
+  height: 540px;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(142deg,
+    rgba(76,104,187,0.055) 0 60px,
+    rgba(76,104,187,0) 60px 200px);
+  -webkit-mask-image: linear-gradient(258deg, #000 25%, transparent 88%);
+  mask-image: linear-gradient(258deg, #000 25%, transparent 88%);
+}
+main, #app-feedback, #app-floating { position: relative; z-index: 1; }
+
+@media (max-width: 640px) {
+  body.is-home::after { width: 85%; height: 340px; }
+}
+
+/* 상세 화면은 메인 영역 가장자리와 콘텐츠가 붙지 않도록 공통 내부 여백을 둔다. */
+.panel:not(#panel-home) { padding-inline: var(--space-ex); }
+
+@media (max-width: 640px) {
+  .panel:not(#panel-home) { padding-inline: 0; }
+}

@@ -1,0 +1,77 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  /* KRDS 참고 팔레트 (krds_question_board.html 기준, 2026-08) */
+  --bg: #f5f7fa; --surface: #fff; --surface2: #f3f4f6;
+  --border: #e5e7eb; --border2: #d1d5db;
+  --tp: #1f2937; --ts: #4b5563; --tm: #6b7280;
+  --accent: #2563eb; --accent-l: #eff6ff; --accent-m: #93c5fd;
+  --accent-d: #1d4ed8;
+  --teal: #0f766e; --teal-l: #f0fdfa; --teal-m: #99f6e4;
+  --success: #047857; --success-bg: #ecfdf5; --success-border: #a7f3d0;
+  --error: #b91c1c; --error-bg: #fef2f2;
+  --warning: #b45309;
+  --warn-bg: #fffbeb; --warn-border: #fde68a;
+  --navy: #172554; --navy2: #1e3a8a;
+  --r: 8px; --r2: 6px;
+  /* 카드 사이 간격 — 가로(카드끼리)와 세로(줄 사이)에 같은 값을 쓴다 */
+  --card-gap: clamp(11px, 1.6vh, 16px);
+  /* 본문 아래 여백 — 하단 줄 간격 계산에도 함께 쓰인다 */
+  --main-pb: clamp(30px, 5vh, 52px);
+  --sh: 0 2px 8px rgba(15,23,42,.06), 0 0 0 1px rgba(15,23,42,.04);
+  --focus: 0 0 0 3px rgba(37,99,235,0.28);
+  --focus-outline: #93c5fd;
+
+  /* Design-system aliases: use these semantic names in new components. */
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border2);
+  --color-text-primary: var(--tp);
+  --color-text-secondary: var(--ts);
+  --color-text-muted: var(--tm);
+  --color-brand: var(--accent);
+  --color-brand-soft: var(--accent-l);
+  --color-brand-muted: var(--accent-m);
+  --color-brand-strong: var(--accent-d);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-bg);
+  --color-danger: var(--error);
+  --color-danger-soft: var(--error-bg);
+  --color-warning-soft: var(--warn-bg);
+  --color-navy: var(--navy);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-ex: 120px;
+  --radius-sm: var(--r2);
+  --radius-md: var(--r);
+  --shadow-card: var(--sh);
+  --control-height: 44px;
+
+  /* Font-size scale — change a value here to move every rule that uses it. */
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-17: 17px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-25: 25px;
+  --fs-28: 28px;
+  --fs-30: 30px;
+  --fs-36: 36px;
+
+  /* Font-weight scale */
+  --fw-regular: 400;
+  --fw-medium: 600;
+  --fw-semibold: 700;
+  --fw-bold: 800;
+  --fw-extrabold: 900;
+}
+body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif; background: var(--bg); color: var(--tp); min-height: 100vh; font-size: var(--fs-17); line-height: 1.6; }
+

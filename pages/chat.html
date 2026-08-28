@@ -1,0 +1,58 @@
+  <div id="panel-chat" class="panel">
+    <div class="panel-with-sidebar">
+      <nav class="sidebar" aria-label="질의응답">
+        <div class="sidebar-label">질의응답</div>
+        <button class="sidebar-item" onclick="switchPanel('faq', this)" data-panel="faq">
+          <span class="sidebar-item-label"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>자주 묻는 질문</span>
+          <span class="sidebar-item-arrow" aria-hidden="true">›</span>
+        </button>
+        <button class="sidebar-item active" onclick="switchPanel('chat', this)" data-panel="chat">
+          <span class="sidebar-item-label"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 상담</span>
+          <span class="sidebar-item-arrow" aria-hidden="true">›</span>
+        </button>
+        <button class="sidebar-item" onclick="switchPanel('board', this)" data-panel="board">
+          <span class="sidebar-item-label"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>상담 게시판</span>
+          <span class="sidebar-item-arrow" aria-hidden="true">›</span>
+        </button>
+      </nav>
+      <div class="panel-content">
+    <div class="breadcrumb">
+      <button type="button" onclick="resetHome(event)">홈</button>
+      <span class="sep" aria-hidden="true">›</span>
+      <span>질의응답</span>
+      <span class="sep" aria-hidden="true">›</span>
+      <span class="current">AI 상담</span>
+    </div>
+    <div class="page-head">
+      <div>
+        <h1 class="pg-title">AI 상담 <em>챗봇</em></h1>
+        <p class="pg-desc">국가연구개발 성과입력 관련 궁금한 점을 질문하세요.</p>
+      </div>
+    </div>
+
+    <div class="chat-wrap html-style-015">
+      <!-- 카드 상단 바: '새 대화'가 채팅 영역에 속해 보이도록 카드 안에 둔다 -->
+      <div class="html-style-016">
+        <span class="html-style-017">성과입력 상담</span>
+        <button class="html-style-018" onclick="resetChat()" title="대화 기록을 지우고 처음부터 다시 시작합니다" onmouseover="this.style.background='var(--accent-l)';this.style.color='var(--accent)';this.style.borderColor='var(--accent-m)';" onmouseout="this.style.background='var(--surface)';this.style.color='var(--ts)';this.style.borderColor='var(--border2)';">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          새 대화
+        </button>
+      </div>
+      <!-- 메시지 영역 -->
+      <div class="html-style-019" id="chat-messages" role="log" aria-live="polite" aria-label="상담 대화 내용">
+        <div class="chat-msg bot">
+          <div class="chat-bubble bot">안녕하세요! 국가연구개발 성과입력 AI 상담 챗봇입니다.<br>성과 등록·관리 관련 궁금한 점을 질문해 주세요 😊</div>
+        </div>
+      </div>
+      <!-- 입력 영역 -->
+      <div class="html-style-020">
+        <label class="sr-only" for="chat-input">상담 질문 입력</label>
+        <textarea class="html-style-021" id="chat-input" placeholder="질문을 입력하세요..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+        <button class="html-style-022" onclick="sendChat()" id="chat-send-btn">전송</button>
+      </div>
+    </div>
+    <p class="chat-note html-style-023">AI 답변은 참고용이며 정확한 내용은 담당자에게 확인하세요 · 성과조사콜센터 042-869-6677</p>
+      </div>
+    </div>
+  </div>
