@@ -140,7 +140,7 @@ async function chat(data) {
   const faq = await listFaq();
   const context = faq.items.map((item) => `[${item.cat}] ${item.q} → ${item.a}`).join("\n");
   const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/"
-    + "gemini-2.5-flash:generateContent?key=" + encodeURIComponent(GEMINI_API_KEY);
+    + "gemini-3.6-flash:generateContent?key=" + encodeURIComponent(GEMINI_API_KEY);
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -187,8 +187,11 @@ async function patent(data) {
   const number = query.replace(/[^0-9]/g, "");
   let url;
   if (type === "word") {
-    url = KIPRIS_BASE + "patUtiModInfoSearchSevice/itemTLSearchInfo"
-      + `?inventionTitle=${encodeURIComponent(query)}&docsStart=1`;
+    // KIPRIS free search uses `word` for title/keyword text search.
+    // Do not derive or send an application/registration number here.
+    url = KIPRIS_BASE + "patUtiModInfoSearchSevice/freeSearchInfo"
+      + `?word=${encodeURIComponent(query)}&patent=true&utility=true`
+      + "&docsCount=50&docsStart=1";
   } else if (country === "KR") {
     const endpoint = type === "application"
       ? "applicationNumberSearchInfo" : "registrationNumberSearchInfo";
@@ -206,7 +209,16 @@ async function patent(data) {
 }
 
 async function route(req) {
-  const data = req.method === "POST" ? (req.body || {}) : req.query;
+  let data = req.method === "POST" ? (req.body || {}) : req.query;
+  // The legacy frontend intentionally sends text/plain to avoid Apps Script
+  // CORS behavior. Express leaves that body as a string, so parse it here.
+  if (typeof data === "string") {
+    try {
+      data = JSON.parse(data);
+    } catch (error) {
+      throw Object.assign(new Error("JSON 요청 본문을 읽을 수 없습니다."), {status: 400});
+    }
+  }
   switch (text(data.action)) {
     case "list": return listConsultations();
     case "faq": return listFaq();

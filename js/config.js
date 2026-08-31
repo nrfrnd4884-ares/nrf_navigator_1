@@ -1,8 +1,10 @@
 /* Shared service configuration. */
+const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const apiUrl = isLocal
+  ? 'http://127.0.0.1:5001/nrf-helper/asia-northeast3/api'
+  : 'https://asia-northeast3-nrf-helper.cloudfunctions.net/api';
+
 window.APP_CONFIG = Object.freeze({
-  // 게시판·FAQ용 Apps Script
-  appsScriptUrl: 'https://script.google.com/macros/s/AKfycbxBCsY6YcI0g1fFfsWOlOYUKdNS4V13pZ8yZBuZPudESiCCcj_0dPYCskPEx7J7ywJ0/exec',
-  // 특허 API 프록시. 현재는 Apps Script의 patent action을 사용한다.
-  // KIPRIS Open API를 연결하려면 이 값을 KIPRIS 연동 서버 주소로 교체해야 한다.
-  patentApiUrl: 'https://script.google.com/macros/s/AKfycbxBCsY6YcI0g1fFfsWOlOYUKdNS4V13pZ8yZBuZPudESiCCcj_0dPYCskPEx7J7ywJ0/exec'
+  appsScriptUrl: apiUrl,
+  patentApiUrl: apiUrl
 });

@@ -121,4 +121,5 @@
   };
 
   global.AppModels = Object.freeze(models);
+  if (typeof module !== 'undefined' && module.exports) module.exports = global.AppModels;
 }(typeof window !== 'undefined' ? window : globalThis));

@@ -22,7 +22,32 @@
       ]
     }
   ],
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "functions/**",
+      "*.log"
+    ]
+  },
   "storage": {
     "rules": "storage.rules"
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    },
+    "functions": {
+      "port": 5001
+    },
+    "hosting": {
+      "port": 5000
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    }
   }
 }

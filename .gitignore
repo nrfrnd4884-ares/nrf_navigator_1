@@ -72,6 +72,10 @@ Thumbs.db
 
 # dotenv environment variables file
 .env
+functions/.env
 
 # dataconnect generated files
 .dataconnect
+
+# Local handover documentation
+PROJECT_HANDOVER.md

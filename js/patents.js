@@ -70,7 +70,10 @@
       }
       if (!json.items || !json.items.length) {
         const detail = json.message || json.reason || '';
-        area.innerHTML = '<div class="board-empty">검색 결과가 없습니다. 번호 형식을 확인해 주세요.'
+        const emptyHint = _patentSearchType === 'word'
+          ? '검색어를 확인해 주세요.'
+          : '번호 형식을 확인해 주세요.';
+        area.innerHTML = '<div class="board-empty">검색 결과가 없습니다. ' + emptyHint
           + (detail ? '<br><span class="api-error-detail">' + esc(detail) + '</span>' : '')
           + '</div>';
         return;
