@@ -11,6 +11,7 @@ const db = admin.firestore();
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const KIPRIS_API_KEY = process.env.KIPRIS_API_KEY;
 const KIPRIS_BASE = "https://plus.kipris.or.kr/openapi/rest/";
+const EMBEDDING_DIMENSION = 2048;
 
 function cors(res) {
   res.set("Access-Control-Allow-Origin", "*");
@@ -124,6 +125,63 @@ const SYSTEM_PROMPT = [
   "친절하고 명확한 한국어로 답하며, 답변 끝에 정확한 내용은 성과조사콜센터(042-869-6677)로 확인하시기 바랍니다.를 붙이세요.",
 ].join("\n");
 
+async function embedQuery(query) {
+  const endpoint = "https://generativelanguage.googleapis.com/v1beta/"
+    + "models/gemini-embedding-001:embedContent";
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "x-goog-api-key": GEMINI_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "models/gemini-embedding-001",
+      content: {parts: [{text: query}]},
+      taskType: "RETRIEVAL_QUERY",
+      outputDimensionality: EMBEDDING_DIMENSION,
+    }),
+  });
+  if (!response.ok) throw new Error(`Embedding API ${response.status}`);
+  const values = (await response.json()).embedding?.values;
+  if (!Array.isArray(values) || values.length < EMBEDDING_DIMENSION) {
+    throw new Error("질문 임베딩 차원이 올바르지 않습니다.");
+  }
+  const reduced = values.slice(0, EMBEDDING_DIMENSION);
+  const norm = Math.sqrt(reduced.reduce((sum, value) => sum + value * value, 0));
+  return norm ? reduced.map((value) => value / norm) : reduced;
+}
+
+async function keywordRag(query) {
+  const words = text(query).toLowerCase().split(/\s+/).filter((word) => word.length > 1);
+  const snapshot = await db.collection("ragChunks").get();
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    const content = text(data.chunkText);
+    const score = words.reduce((sum, word) => sum + (content.toLowerCase().includes(word) ? 1 : 0), 0);
+    return {content, source: text(data.sourceFile), score};
+  }).filter((item) => item.content && item.score > 0)
+    .sort((a, b) => b.score - a.score).slice(0, 8);
+}
+
+async function ragContext(query) {
+  try {
+    const vector = await embedQuery(query);
+    const snapshot = await db.collection("ragChunks").findNearest({
+      vectorField: "embedding",
+      queryVector: vector,
+      distanceMeasure: "COSINE",
+      limit: 8,
+    }).get();
+    return snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {content: text(data.chunkText), source: text(data.sourceFile)};
+    }).filter((item) => item.content);
+  } catch (error) {
+    logger.warn("Vector search unavailable; using keyword fallback", error);
+    return keywordRag(query);
+  }
+}
+
 async function chat(data) {
   if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY 환경변수가 설정되지 않았습니다.");
   const history = Array.isArray(data.history) ? data.history : [];
@@ -138,7 +196,11 @@ async function chat(data) {
   if (!contents.length) throw new Error("메시지를 입력하세요.");
 
   const faq = await listFaq();
-  const context = faq.items.map((item) => `[${item.cat}] ${item.q} → ${item.a}`).join("\n");
+  const lastQuestion = [...contents].reverse().find((item) => item.role === "user")?.parts[0].text || "";
+  const ragItems = await ragContext(lastQuestion);
+  const faqContext = faq.items.map((item) => `[FAQ ${item.cat}] ${item.q} → ${item.a}`).join("\n");
+  const ragText = ragItems.map((item) => `[매뉴얼 ${item.source}] ${item.content}`).join("\n");
+  const context = [faqContext, ragText].filter(Boolean).join("\n");
   const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/"
     + "gemini-3.6-flash:generateContent?key=" + encodeURIComponent(GEMINI_API_KEY);
   const response = await fetch(endpoint, {
@@ -187,11 +249,9 @@ async function patent(data) {
   const number = query.replace(/[^0-9]/g, "");
   let url;
   if (type === "word") {
-    // KIPRIS free search uses `word` for title/keyword text search.
-    // Do not derive or send an application/registration number here.
-    url = KIPRIS_BASE + "patUtiModInfoSearchSevice/freeSearchInfo"
-      + `?word=${encodeURIComponent(query)}&patent=true&utility=true`
-      + "&docsCount=50&docsStart=1";
+    // Title search uses inventionTitle. No number parameter is sent here.
+    url = KIPRIS_BASE + "patUtiModInfoSearchSevice/itemTLSearchInfo"
+      + `?inventionTitle=${encodeURIComponent(query)}&docsStart=1&docsCount=50`;
   } else if (country === "KR") {
     const endpoint = type === "application"
       ? "applicationNumberSearchInfo" : "registrationNumberSearchInfo";
@@ -205,7 +265,12 @@ async function patent(data) {
   url += `&accessKey=${encodeURIComponent(KIPRIS_API_KEY)}`;
   const response = await fetch(url);
   if (!response.ok) throw new Error(`KIPRIS API ${response.status}`);
-  return {items: parsePatentXml(await response.text())};
+  const xml = await response.text();
+  const resultMessage = xmlValue(["resultMsg", "resultMessage"], xml);
+  if (resultMessage && !/^(success|no\s*data)$/i.test(resultMessage)) {
+    throw new Error(`KIPRIS: ${resultMessage}`);
+  }
+  return {items: parsePatentXml(xml)};
 }
 
 async function route(req) {

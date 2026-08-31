@@ -23,6 +23,9 @@ if (!spreadsheetId) {
   throw new Error('GOOGLE_SHEETS_SPREADSHEET_ID 환경변수가 필요합니다.');
 }
 
+console.log(`Sheets 마이그레이션 시작: ${spreadsheetId.slice(0, 6)}...`);
+console.log(`Firestore 대상: ${process.env.FIRESTORE_EMULATOR_HOST || '운영 Firestore'}`);
+
 admin.initializeApp();
 const db = admin.firestore();
 
@@ -30,6 +33,7 @@ const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
 });
 const sheets = google.sheets({ version: 'v4', auth });
+google.options({ timeout: 30000 });
 
 const sheetConfig = [
   {
@@ -130,6 +134,7 @@ function stableId(config, model, rowNumber) {
 
 async function readSheet(config) {
   const sheetName = process.env[config.env] || config.name;
+  console.log(`시트 읽는 중: ${sheetName}`);
   const metadata = await sheets.spreadsheets.get({
     spreadsheetId,
     fields: 'sheets.properties.title',
@@ -148,6 +153,7 @@ async function readSheet(config) {
     range: `'${actualName.replace(/'/g, "''")}'!A1:Z`,
   });
   const values = response.data.values || [];
+  console.log(`시트 읽기 완료: ${actualName} (${Math.max(values.length - 1, 0)}건)`);
   if (!values.length) return [];
   const headers = values[0];
   return values.slice(1)
@@ -176,7 +182,7 @@ async function writeCollection(config, entries) {
       throw new Error(`${config.collection}/${id} 문서가 너무 큽니다 (${documentBytes} bytes). Firestore 문서 크기 제한을 초과할 수 있습니다.`);
     }
     if (writes > 0 && (writes >= maxBatchWrites || batchBytes + documentBytes > maxBatchBytes)) {
-      await batch.commit();
+      await commitBatch(batch, config.collection);
       batch = db.batch();
       writes = 0;
       batchBytes = 0;
@@ -185,8 +191,22 @@ async function writeCollection(config, entries) {
     writes += 1;
     batchBytes += documentBytes;
   }
-  if (writes > 0) await batch.commit();
+  if (writes > 0) await commitBatch(batch, config.collection);
   return writes;
+}
+
+async function commitBatch(batch, collection) {
+  console.log(`Firestore 쓰기 중: ${collection}`);
+  await Promise.race([
+    batch.commit(),
+    new Promise((resolve, reject) => setTimeout(
+      () => reject(new Error(
+        'Firestore 쓰기 시간 초과입니다. FIRESTORE_EMULATOR_HOST와 Emulator 상태를 확인하세요.',
+      )),
+      15000,
+    )),
+  ]);
+  console.log(`Firestore 쓰기 완료: ${collection}`);
 }
 
 async function main() {

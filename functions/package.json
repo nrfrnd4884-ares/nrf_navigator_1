@@ -8,8 +8,8 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "migrate:sheets": "node migrate-sheets.js",
-    "embed:rag": "node embed-rag.js"
+    "migrate:sheets": "node --env-file=.env migrate-sheets.js",
+    "embed:rag": "node --env-file=.env embed-rag.js"
   },
   "engines": {
     "node": "22"

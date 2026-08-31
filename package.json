@@ -1,0 +1,9 @@
+{
+  "name": "nrf-helper",
+  "private": true,
+  "scripts": {
+    "migrate:sheets": "npm --prefix functions run migrate:sheets",
+    "embed:rag": "npm --prefix functions run embed:rag",
+    "emulators": "firebase emulators:start --only firestore,functions,hosting"
+  }
+}

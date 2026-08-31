@@ -14,7 +14,7 @@
   //   조각이 먼저 준비되면 아직 로드되지 않은 스크립트의 전역 함수를 호출해 에러가 날 수 있음)
   const scriptsLoaded = Promise.all(scripts.map(name => new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = 'js/' + name + '?v=20260825-2';
+    script.src = 'js/' + name + '?v=20260831-3';
     script.async = false;
     script.onload = resolve;
     script.onerror = () => reject(new Error('스크립트 로드 실패: ' + name));

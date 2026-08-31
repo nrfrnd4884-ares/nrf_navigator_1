@@ -92,7 +92,8 @@
       }
     } catch(e) {
       console.error('Patent search failed:', e);
-      area.innerHTML = '<div class="board-empty">조회 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>';
+      area.innerHTML = '<div class="board-empty">조회 중 오류가 발생했습니다.'
+        + '<br><span class="api-error-detail">' + esc(e.message || '알 수 없는 오류') + '</span></div>';
     }
   }
 
