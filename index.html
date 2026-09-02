@@ -980,6 +980,32 @@ header {
                overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .q-mine    { font-size: var(--fs-14); font-weight: var(--fw-semibold); color: #fff;
                background: var(--teal); padding: 1px 8px; border-radius: 10px; }
+  /* ── 검색 결과 없음 안내 ────────────────────────────────────
+     예전에는 맞는 결과가 없으면 관련 없는 50건을 그대로 쏟아냈다.
+     지금은 사정을 알리고 볼지 말지를 이용자가 정한다. */
+  .sr-empty { background: var(--surface); border: 1px dashed var(--border2);
+              border-radius: var(--r); padding: 32px 24px; text-align: center; }
+  .sr-empty-title { font-size: var(--fs-18); font-weight: var(--fw-semibold);
+                    color: var(--tp); margin-bottom: 10px; }
+  .sr-empty-desc  { font-size: var(--fs-16); color: var(--tm); line-height: 1.7;
+                    margin-bottom: 6px; word-break: keep-all; }
+  .sr-loose-btn { margin-top: 16px; height: 38px; padding: 0 18px;
+                  background: var(--surface); color: var(--ts);
+                  border: 1px solid var(--border2); border-radius: var(--r2);
+                  font-size: var(--fs-16); font-family: inherit; cursor: pointer;
+                  transition: all 0.12s; }
+  .sr-loose-btn:hover { background: var(--accent-l); color: var(--accent);
+                        border-color: var(--accent-m); }
+
+  /* ── 로고 크기 ──────────────────────────────────────────────
+     기본값 38px 은 헤더 높이(76px)에 비해 작아 잘 보이지 않는다.
+     위아래 여백을 12px 씩 남기고 52px 로 키운다.
+     (모바일은 헤더가 58px 로 낮아지므로 42px) */
+  .logo .html-style-001 { height: 52px; }
+  @media (max-width: 640px) {
+    .logo .html-style-001 { height: 42px; }
+  }
+
   /* ── 결과표를 원래대로 2열로 ─────────────────────────────────
      후배님 CSS 는 폭이 1100px 이상일 때 결과표를 3열로 넓혔지만,
      학술지명처럼 긴 값이 좁은 칸에 갇혀 여러 줄로 접힌다.
@@ -1183,7 +1209,7 @@ header {
             </button>
           </div>
           <div class="hint-row">
-            <span class="hint-l html-style-009">※ 관련도가 높은 순으로 최대 30건을 보여줍니다. 결과 목록에서 해당 논문을 선택하세요.</span>
+            <span class="hint-l html-style-009">※ CrossRef와 KCI에서 관련도가 높은 순으로 최대 100건을 보여줍니다. 결과 목록에서 해당 논문을 선택하세요.</span>
           </div>
         </div>
       </div>
@@ -2010,6 +2036,7 @@ header {
       const items = mergePaperResults(crItems, kciItems);
       if (!items.length) { document.getElementById('sr-area').innerHTML = '<div class="error-card"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>검색 결과가 없습니다. 다른 키워드로 시도해보세요.</p></div>'; btn.disabled = false; return; }
       _srQuery   = q;        // 정확도 필터에 쓸 검색어 보관
+      _srShowLoose = false;  // '관련도 낮은 결과' 는 새 검색마다 다시 접는다
       renderSearchList(items);
     } catch(e) { showError('sr-area', e); }
     btn.disabled = false;
@@ -2151,6 +2178,7 @@ header {
          나머지는 화면에 내보내지 않는다. */
   let _srQuery   = '';      // 마지막 검색어
   let _kciFailed = false;   // 이번 검색에서 KCI 조회가 실패했는지
+  let _srShowLoose = false; // 이용자가 '관련도 낮은 결과'를 펼쳐 봤는지
 
   // 비교용 정규화 — 띄어쓰기·하이픈·문장부호를 지워 조사나 표기 차이를 흡수한다
   //  예) '초음파적 진단' 에서도 '초음파'와 '진단'을 찾아낼 수 있다
@@ -2177,17 +2205,104 @@ header {
     return v.toLowerCase().replace(/[\s\-–—_·:;,.()\[\]{}'"?!/\\]/g, '');
   }
 
-  // 검색어의 모든 낱말이 제목에 포함된 항목의 '전체 목록 기준 번호'를 돌려준다
-  function srMatchedIdx() {
-    const items = window._srItems || [];
-    const toks = _srQuery.split(/\s+/).map(normText).filter(Boolean);
-    if (!toks.length) return items.map((_, i) => i);
+  /* 검색어를 대조용 낱말로 쪼갠다.
+
+     ① 한글과 영문·숫자가 붙어 있으면 떼어낸다.
+        '내장한HBM3' 처럼 띄어쓰기를 빠뜨리면 통째로 한 낱말이 되어
+        어떤 제목에도 걸리지 않는다. → '내장한' + 'HBM3' 로 나눈다.
+
+     ② 조사·어미를 떼어낸다.
+        '회로를' '내장한' 은 제목에 그대로 들어 있을 리가 없다.
+        떼어낸 뒤 두 글자 이상 남을 때만 적용한다.
+        ('평가' 의 '가' 를 떼어 '평' 이 되는 사고를 막기 위함) */
+  function srTokens() {
     const out = [];
-    items.forEach((w, i) => {
-      const t = normText((w.title || []).join(' '));
-      if (toks.every(k => t.includes(k))) out.push(i);
+    _srQuery.split(/\s+/).filter(Boolean).forEach(function (word) {
+      (word.match(/[가-힣]+|[A-Za-z0-9]+/g) || [word]).forEach(function (piece) {
+        let t = normText(piece);
+        if (!t) return;
+        if (/[가-힣]$/.test(t)) {
+          const cut = t.replace(/(으로|에서|에게|부터|까지|을|를|이|가|은|는|의|에|와|과|로|한|된|들)$/, '');
+          if (cut.length >= 2) t = cut;
+        }
+        if (t && out.indexOf(t) < 0) out.push(t);
+      });
     });
     return out;
+  }
+
+  /* 제목이 검색어와 얼마나 겹치는지 점수를 매겨 두 묶음으로 나눈다.
+
+     [왜 낱말 '개수' 가 아니라 '무게' 인가]
+       국문으로 검색해도 국내 논문이 영문 제목으로만 등록된 경우가 많다.
+       그때 '수신부' '메모리' 같은 국문 낱말은 애초에 걸릴 수가 없고
+       'HBM3' 하나만 걸린다. 몇 개나 맞았는지로 재면 이런 논문은 늘 탈락한다.
+       → 걸린 낱말마다 무게를 매겨 더한 값을 점수로 쓴다.
+
+     [무게를 정하는 세 가지]
+       ① 길이      — 긴 낱말일수록 우연히 걸릴 일이 적다
+       ② 흔한 정도 — 받아온 결과 50건 중 몇 건에 나오는지 센다.
+                     여기저기 나오는 낱말은 가볍게, 몇 건에만 나오면 무겁게.
+       ③ 영문·숫자 — 국문 제목에 섞인 영문·숫자는 대개 고유명사나 모델명이라
+                     그 논문을 특정하는 힘이 크다. 두 배로 친다.
+
+       ②③ 이 없으면 '인터페이스'(5글자) 가 'HBM3'(4글자) 를 눌러,
+       검색어에 HBM3 가 있는데도 엉뚱한 인터페이스 논문이 앞자리를 차지한다.
+
+     exact   : 모든 낱말이 들어 있음          → 확실한 결과
+     partial : 최고 점수의 60% 이상           → 비슷한 결과 (점수순)
+     그 밖   : 관련도가 낮음                  → 이용자가 눌러야만 보여준다 */
+  function srScored() {
+    const items = window._srItems || [];
+    const toks  = srTokens();
+    if (!toks.length) return { toks: [], exact: items.map((_, i) => i), partial: [] };
+
+    /* 제목을 미리 한 번만 다듬어 둔다 (낱말마다 다시 만들면 느려진다) */
+    const norms = items.map(function (w) { return normText((w.title || []).join(' ')); });
+
+    /* ② 각 낱말이 결과 몇 건의 제목에 나오는지 센다 */
+    const df = {};
+    toks.forEach(function (k) { df[k] = 0; });
+    norms.forEach(function (t) {
+      toks.forEach(function (k) { if (t.includes(k)) df[k]++; });
+    });
+
+    const N = items.length || 1;
+    const weight = {};
+    toks.forEach(function (k) {
+      const rare  = Math.log(1 + N / (df[k] || 1));        // 흔할수록 작아진다
+      const latin = /^[a-z0-9]+$/.test(k) ? 2 : 1;         // 영문·숫자 가산
+      weight[k] = k.length * rare * latin;
+    });
+
+    const scored = items.map(function (w, i) {
+      let hits = 0, score = 0;
+      toks.forEach(function (k) {
+        if (norms[i].includes(k)) { hits++; score += weight[k]; }
+      });
+      return { i: i, hits: hits, score: score };
+    });
+
+    const exact = scored.filter(function (x) { return x.hits === toks.length; })
+                        .map(function (x) { return x.i; });
+
+    /* 최고 점수를 기준으로 자른다. 절대 점수로 자르면 검색어 길이에 따라
+       기준이 들쭉날쭉해진다. (한 낱말 검색과 열 낱말 검색의 점수대가 다르다) */
+    const rest = scored.filter(function (x) { return x.hits > 0 && x.hits < toks.length; });
+    const best = rest.reduce(function (m, x) { return Math.max(m, x.score); }, 0);
+    const cut  = best * 0.6;
+    const partial = rest.filter(function (x) { return x.score >= cut; })
+                        .sort(function (a, b) { return b.score - a.score; })
+                        .map(function (x) { return x.i; });
+
+    return { toks: toks, exact: exact, partial: partial };
+  }
+
+  /* '관련도가 낮은 결과 보기' 버튼 */
+  function srShowLoose() {
+    _srShowLoose = true;
+    resetPage('paper');
+    renderSearchListPage();
   }
 
   /* 논문 발행일을 비교용 숫자(YYYYMMDD)로 바꾼다.
@@ -2214,16 +2329,59 @@ header {
   function renderSearchListPage() {
     const all = window._srItems || [];
     if (!all.length) return;
-    const matched = srMatchedIdx();
-    /* 정확히 일치하는 결과가 하나도 없으면 자동으로 전체를 보여준다.
-       검색어를 제목과 다르게 입력했을 때 '결과 없음'으로 보이는 사고를 막기 위함. */
-    const showAll = matched.length === 0;
-    const idxList = paperSortedIdx(showAll ? all.map((_, i) => i) : matched);
+    const sc = srScored();
+    const looksKorean = /[가-힣]/.test(_srQuery);
 
+    /* 어느 묶음을 보여줄지 정한다.
+       exact → near → (이용자가 눌렀다면) 전체 순으로 내려간다. */
+    let baseList, mode;
+    if (sc.exact.length)     { baseList = sc.exact;                 mode = 'exact'; }
+    else if (sc.partial.length) { baseList = sc.partial;            mode = 'near';  }
+    else if (_srShowLoose)   { baseList = all.map((_, i) => i);     mode = 'loose'; }
+    else                     { baseList = [];                       mode = 'none';  }
+
+    /* 국내 논문은 학회지가 영문 제목만 등록해 두는 경우가 많다.
+       (예: '옵셋 보정 회로를 내장한 HBM3 …' → 'DQ and DQS Receiver for HBM3 …')
+       국문으로 찾다 실패했을 때 이 사실을 모르면 '없는 논문'으로 단정하게 된다. */
+    const engHint = looksKorean
+      ? '<p class="sr-empty-desc">국내 논문은 영문 제목으로만 등록된 경우가 있습니다. '
+      + '영문 제목이나 영문 핵심어로도 검색해 보세요.</p>'
+      : '';
+
+    /* 맞는 결과가 하나도 없을 때 — 예전에는 50건을 그대로 쏟아냈다.
+       이제는 사정을 알리고, 볼지 말지는 이용자가 정하게 한다. */
+    if (mode === 'none') {
+      document.getElementById('sr-area').innerHTML =
+          '<div class="search-results"><div class="sr-empty">'
+        + '<div class="sr-empty-title">입력하신 제목과 일치하는 논문을 찾지 못했습니다</div>'
+        + '<p class="sr-empty-desc">검색어가 길수록 오히려 찾기 어렵습니다. '
+        + '조사를 빼고 핵심 단어 두세 개만 남겨서 다시 검색해 보세요.</p>'
+        + engHint
+        + (all.length
+            ? '<button class="sr-loose-btn" type="button" onclick="srShowLoose()">'
+              + '관련도가 낮은 결과 ' + all.length + '건 보기</button>'
+            : '')
+        + '</div></div>';
+      return;
+    }
+
+    const idxList = paperSortedIdx(baseList);
     const pageIdx = pageSlice('paper', idxList);
-    const title = '검색 결과 ' + idxList.length + '건 — 해당 논문을 선택하세요';
+    const title = (mode === 'loose')
+      ? '관련도가 낮은 결과 ' + idxList.length + '건'
+      : '검색 결과 ' + idxList.length + '건 — 해당 논문을 선택하세요';
 
     let html = '<div class="search-results">';
+
+    /* 어떤 묶음을 보고 있는지 알려준다. 설명 없이 목록만 있으면
+       '이게 전부인가' 또는 '왜 엉뚱한 게 나오나' 를 판단할 수 없다. */
+    if (mode === 'near') {
+      html += '<div class="src-warn">제목과 완전히 일치하는 논문은 없어, '
+            + '검색어와 많이 겹치는 순서로 보여줍니다.</div>';
+    } else if (mode === 'loose') {
+      html += '<div class="src-warn">검색어와 일부만 겹치거나 관련이 없는 결과일 수 있습니다. '
+            + '핵심 단어를 줄여 다시 검색하면 더 정확합니다.</div>';
+    }
     // KCI가 빠진 채 CrossRef 결과만 보이는 상황을 이용자가 알 수 있게 한다
     /* KCI가 실패했어도 무조건 알리지는 않는다.
        찾던 논문이 CrossRef에서 이미 나왔는데 '빠졌을 수 있다'고 하면
@@ -2232,8 +2390,7 @@ header {
        ※ 판단 기준은 matched(정확히 일치한 건수)다. idxList는 일치가 0건일 때
          전체를 대신 보여주느라 부풀려진 숫자라서, 그걸로 재면 '50건이나 나왔네'로
          오인해 경고를 놓친다. */
-    const looksKorean = /[가-힣]/.test(_srQuery);
-    if (_kciFailed && (matched.length === 0 || (looksKorean && matched.length < 10))) {
+    if (_kciFailed && (sc.exact.length === 0 || (looksKorean && sc.exact.length < 10))) {
       html += '<div class="src-warn">⚠ 국내 학술지(KCI) 조회를 일시적으로 이용할 수 없습니다. '
             + '찾는 논문이 없다면 잠시 후 다시 시도해 주세요.</div>';
     }
