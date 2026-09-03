@@ -3613,6 +3613,23 @@ header {
     }
     const recent = year && (thisYear - year) <= 2;
 
+    /* 제목(발명 명칭) 검색 —
+       KIPRIS 가 발명 명칭에서 낱말을 찾는 방식이라, 제목을 통째로 넣으면 잘 못 찾는다.
+       특히 PDF·시스템에서 복사하면 띄어쓰기가 빠지는 일이 잦은데
+       ('고려한터보펌프용' 처럼) 그러면 그런 낱말이 있는 특허가 없어 0건이 된다.
+       검색은 KIPRIS 가 수행하므로 논문처럼 우리 쪽에서 낱말을 쪼개 걸러낼 수 없다.
+       → 이용자가 스스로 줄여 넣도록 안내한다. */
+    if (type === 'word') {
+      return '<div class="patent-empty">'
+           + '<div class="patent-empty-title">검색 결과가 없습니다</div>'
+           + '<p class="patent-empty-desc">발명 명칭이 길수록 오히려 찾기 어렵습니다. '
+           + '<strong>핵심 단어 두세 개만</strong> 남겨서 다시 검색해 보세요.</p>'
+           + '<p class="patent-empty-desc">복사해 붙여 넣으셨다면 <strong>띄어쓰기가 빠지지 않았는지</strong> 확인해 주세요. '
+           + '붙어 있는 낱말은 찾지 못합니다.</p>'
+           + '<p class="patent-empty-desc">출원번호나 등록번호를 알고 계시다면 해당 탭에서 조회하는 편이 정확합니다.</p>'
+           + '</div>';
+    }
+
     if (type === 'application' && recent) {
       return '<div class="patent-empty">'
            + '<div class="patent-empty-title">검색 결과가 없습니다</div>'
@@ -3631,6 +3648,7 @@ header {
     }
 
     /* 해외 특허 —
+       (등록번호 조회는 KIPRIS registerNumberSearch 로 정상 연결돼 있다)
        나라마다 번호 체계가 달라 출원 연도를 정확히 알아낼 수 없다.
        (미국은 앞 두 자리 '시리즈 코드' 가 대략의 시기를 나타내지만
         한 시리즈가 여러 해에 걸쳐 있고 예외도 있어, 연도를 단정하면 틀린 정보를 주게 된다)
@@ -3643,8 +3661,11 @@ header {
            + '<p class="patent-empty-desc">'
            + '· <strong>출원 후 18개월이 지나지 않아 아직 공개 전인 경우</strong><br>'
            + '· <strong>KIPRIS 해외 데이터베이스에 수록되지 않은 경우</strong></p>'
-           + '<p class="patent-empty-desc">등록번호가 있다면 등록번호 탭에서도 조회해 보시고, '
-           + '국가 선택이 맞는지도 확인해 주세요.</p>'
+           + '<p class="patent-empty-desc">'
+           + (type === 'registration'
+                ? '출원번호를 알고 계시다면 <strong>출원번호</strong> 탭에서도 조회해 보세요. '
+                : '등록된 특허라면 <strong>등록번호</strong> 탭에서도 조회해 보세요. ')
+           + '국가 선택이 맞는지도 함께 확인해 주세요.</p>'
            + '</div>';
     }
 
