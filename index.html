@@ -1663,11 +1663,13 @@ header {
 </div>
 
 <div id="app-floating">
-<!-- 스크롤을 따라다니는 고정 '결과 초기화' 버튼 (검색 결과가 있을 때만 표시) -->
-<button class="html-style-054" id="floating-clear-btn" onclick="clearActiveSearch()"
- >
-  <svg class="html-style-055" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-  결과 초기화
+<!-- 스크롤을 따라다니는 '맨 위로' 버튼
+     400px 이상 내려가면 나타나고, 하단 기록·개선의견 영역이 보이면 스스로 감춘다.
+     (그 영역의 버튼을 가려 클릭을 막지 않기 위함 — adjustScrollTopBtn 참고)
+     결과 초기화는 검색창 바로 아래 막대에 그대로 있다. -->
+<button class="html-style-054" id="scroll-top-btn" onclick="scrollToTop()" title="맨 위로 이동">
+  <svg class="html-style-055" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+  맨 위로
 </button>
 </div>
 
@@ -2645,7 +2647,9 @@ header {
     h += '</div></div>'; /* rc-body, result-card */
     document.getElementById('result-area').innerHTML = h;
     if (!_isKci) loadCountry(issnRaw);   // KCI 논문은 이미 확정값이라 조회하지 않는다
-    saveHistory(title, doi);
+    /* KCI 논문은 DOI 가 CrossRef 에 없으므로, 다시 조회할 때 쓸 KCI 논문번호를 함께 남긴다.
+       (남기지 않으면 '다시 조회' 가 CrossRef 로 가서 'DOI를 찾을 수 없습니다' 가 뜬다) */
+    saveHistory(title, doi, w._kci ? w._kci.id : '');
     renderHistory();
   }
 
@@ -3492,13 +3496,38 @@ header {
   let doiHistory = [];          // 페이지가 열려있는 동안만 유지. F5하면 빈 배열로 리셋됨.
   const MAX_HISTORY = 10;
 
-  function saveHistory(title, doi) {
+  function saveHistory(title, doi, kciId) {
     try {
-      const filtered = doiHistory.filter(h => h.doi !== doi);
-      filtered.unshift({ title, doi, date: new Date().toLocaleDateString('ko-KR') });
+      /* DOI 가 없는 KCI 논문도 있으므로 KCI 논문번호까지 합쳐 같은 글인지 판단한다 */
+      const key = doi || ('kci:' + (kciId || ''));
+      const filtered = doiHistory.filter(h => (h.doi || ('kci:' + (h.kciId || ''))) !== key);
+      filtered.unshift({ title, doi, kciId: kciId || '', date: new Date().toLocaleDateString('ko-KR') });
       doiHistory = filtered.slice(0, MAX_HISTORY);
       renderHistory();
     } catch(e) {}
+  }
+
+  /* '다시 조회' — 어디서 온 논문인지에 따라 조회처가 다르다.
+     KCI 논문의 DOI 는 CrossRef 에 등록돼 있지 않은 경우가 많아,
+     무조건 CrossRef 로 보내면 'DOI를 찾을 수 없습니다' 가 뜬다. */
+  function reLookup(doi, kciId) {
+    if (kciId) return reLookupKci(kciId);
+    if (doi)   return fillDoi(doi);
+  }
+
+  async function reLookupKci(id) {
+    document.getElementById('doi-clear-bar').style.display = 'flex';
+    updateScrollTopBtn();
+    document.getElementById('sr-area').innerHTML = '';
+    setLoading('result-area', '상세 정보 조회 중...');
+    try {
+      const res  = await fetch(KCI_URL + '?type=detail&id=' + encodeURIComponent(id)
+                             + '&_t=' + Date.now(), { cache: 'no-store' });
+      const json = await res.json();
+      if (json.error || !json.item) throw { type: 'network' };
+      const full = kciToWork(json.item);
+      renderResult(full, full.DOI || '');
+    } catch (e) { showError('result-area', e); }
   }
 
   function renderHistory() {
@@ -3514,10 +3543,10 @@ header {
         '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);gap:10px;">'
         + '<div style="flex:1;min-width:0;">'
         + '<div style="font-size:13px;color:var(--tp);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(h.title) + '</div>'
-        + '<div style="font-size:11px;color:var(--tm);font-family:monospace;">' + esc(h.doi) + '</div>'
+        + '<div style="font-size:11px;color:var(--tm);font-family:monospace;">' + esc(h.doi || (h.kciId ? 'KCI ' + h.kciId : '')) + '</div>'
         + '</div>'
         + '<div style="display:flex;gap:6px;flex-shrink:0;">'
-        + '<button onclick="fillDoi(\'' + esc(h.doi) + '\')" style="font-size:11px;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--accent);">다시 조회</button>'
+        + '<button onclick="reLookup(this.dataset.doi, this.dataset.kci)" data-doi="' + esc(h.doi || '') + '" data-kci="' + esc(h.kciId || '') + '" style="font-size:11px;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--accent);">다시 조회</button>'
         + '</div>'
         + '</div>'
       ).join('');
@@ -4028,43 +4057,10 @@ header {
     });
   };
 
-  /* ── ② 떠 있는 '결과 초기화' 버튼 ──
-     후배님 마크업이 clearActiveSearch() 를 부르는데 원본에 없던 함수입니다.
-     지금 보고 있는 패널에 맞춰 논문/특허 초기화를 대신 실행합니다. */
-  window.clearActiveSearch = function () {
-    function on(id) {
-      var p = document.getElementById(id);
-      return p && p.classList.contains('active');
-    }
-    if (on('panel-patent')) { clearPatentSearch(); }
-    else if (on('panel-doi')) { clearDoiSearch(); }
-  };
-
-  function shown(id) {
-    var el = document.getElementById(id);
-    if (!el || el.offsetParent === null) return false;
-    return getComputedStyle(el).display !== 'none';
-  }
-
-  function updateFloatingClear() {
-    var btn = document.getElementById('floating-clear-btn');
-    if (!btn) return;
-    btn.style.display = (shown('doi-clear-bar') || shown('patent-clear-bar'))
-      ? 'inline-flex' : 'none';
-  }
-
-  /* 원본은 검색·초기화·패널이동 때마다 updateScrollTopBtn() 을 부릅니다.
-     그 함수를 감싸서 떠 있는 버튼도 같이 갱신되게 합니다. */
-  var _origUpdate = window.updateScrollTopBtn;
-  window.updateScrollTopBtn = function () {
-    if (typeof _origUpdate === 'function') { try { _origUpdate(); } catch (e) {} }
-    updateFloatingClear();
-  };
-
-  window.addEventListener('scroll', updateFloatingClear, { passive: true });
+  /* ② 떠 있는 버튼은 원본의 '맨 위로'(scroll-top-btn) 를 그대로 씁니다.
+        원본에 표시 조건과 하단 영역 겹침 처리가 이미 들어 있어 덮어쓸 것이 없습니다. */
 
   document.addEventListener('DOMContentLoaded', function () {
-    updateFloatingClear();
     var d = dlg();
     // ESC 로 닫을 때도 입력값이 정리되도록 (<dialog> 기본 동작 보완)
     if (d) d.addEventListener('close', function () { window.closeWriteModal(); });
