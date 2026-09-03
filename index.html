@@ -980,6 +980,15 @@ header {
                overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .q-mine    { font-size: var(--fs-14); font-weight: var(--fw-semibold); color: #fff;
                background: var(--teal); padding: 1px 8px; border-radius: 10px; }
+  /* ── 특허 조회 결과 없음 안내 ────────────────────────────── */
+  .patent-empty { background: var(--surface); border: 1px dashed var(--border2);
+                  border-radius: var(--r); padding: 32px 24px; text-align: center; }
+  .patent-empty-title { font-size: var(--fs-18); font-weight: var(--fw-semibold);
+                        color: var(--tp); margin-bottom: 12px; }
+  .patent-empty-desc  { font-size: var(--fs-16); color: var(--tm); line-height: 1.75;
+                        margin-bottom: 8px; word-break: keep-all; }
+  .patent-empty-desc strong { color: var(--ts); font-weight: var(--fw-semibold); }
+
   /* ── 검색 결과 없음 안내 ────────────────────────────────────
      예전에는 맞는 결과가 없으면 관련 없는 50건을 그대로 쏟아냈다.
      지금은 사정을 알리고 볼지 말지를 이용자가 정한다. */
@@ -3582,7 +3591,67 @@ header {
     const area = document.getElementById('patent-result-area');
     area.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>KIPRIS에서 조회 중...</span></div>';
 
-    // 국가코드 가져오기
+    /* 결과가 없을 때 안내 문구를 고른다.
+
+     번호 형식은 멀쩡한데 '번호 형식을 확인해 주세요' 라고만 안내하면
+     이용자는 번호를 계속 다시 입력하게 된다.
+     실제 원인은 대개 '아직 공개되지 않은 출원' 이다.
+
+     한국 특허는 출원 후 18개월이 지나야 공개된다.
+     조기공개를 신청했거나 이미 등록된 경우가 아니면 KIPRIS 공개 DB 에 자료가 없다.
+     → 출원번호 앞자리의 연도를 보고 최근 건이면 그 사정을 알려준다.
+       (예: 10-2025-0190439 → 2025년 출원) */
+  function patentEmptyMessage(type, query, country) {
+    const digits = String(query || '').replace(/[^0-9]/g, '');
+    const thisYear = new Date().getFullYear();
+
+    /* 한국 출원번호는 '10(특허)/20(실용신안) + 연도 4자리 + 일련번호' 형태다 */
+    let year = 0;
+    if (country === 'KR' && digits.length >= 6) {
+      const y = parseInt(digits.slice(2, 6), 10);
+      if (y >= 1948 && y <= thisYear) year = y;
+    }
+    const recent = year && (thisYear - year) <= 2;
+
+    if (type === 'application' && recent) {
+      return '<div class="patent-empty">'
+           + '<div class="patent-empty-title">검색 결과가 없습니다</div>'
+           + '<p class="patent-empty-desc"><strong>' + year + '년 출원 건은 아직 공개되지 않았을 수 있습니다.</strong><br>'
+           + '한국 특허는 출원 후 18개월이 지나야 공개되며, 그 전에는 조회되지 않습니다.</p>'
+           + '<p class="patent-empty-desc">이미 등록된 특허라면 <strong>등록번호</strong> 탭에서 조회해 보세요. '
+           + '조기공개를 신청한 경우에는 18개월 전에도 조회됩니다.</p>'
+           + '</div>';
+    }
+    if (type === 'registration' && recent) {
+      return '<div class="patent-empty">'
+           + '<div class="patent-empty-title">검색 결과가 없습니다</div>'
+           + '<p class="patent-empty-desc">등록번호가 정확한지 확인해 주세요. '
+           + '아직 등록 전이라면 <strong>출원번호</strong> 탭에서 조회해 보세요.</p>'
+           + '</div>';
+    }
+
+    /* 해외 특허 —
+       나라마다 번호 체계가 달라 출원 연도를 정확히 알아낼 수 없다.
+       (미국은 앞 두 자리 '시리즈 코드' 가 대략의 시기를 나타내지만
+        한 시리즈가 여러 해에 걸쳐 있고 예외도 있어, 연도를 단정하면 틀린 정보를 주게 된다)
+       → 연도를 추정하는 대신 조회되지 않는 두 가지 사유를 함께 알려주고
+         이용자가 스스로 판단하게 한다. */
+    if (country !== 'KR') {
+      return '<div class="patent-empty">'
+           + '<div class="patent-empty-title">검색 결과가 없습니다</div>'
+           + '<p class="patent-empty-desc">해외 특허는 다음 두 경우에 조회되지 않습니다.</p>'
+           + '<p class="patent-empty-desc">'
+           + '· <strong>출원 후 18개월이 지나지 않아 아직 공개 전인 경우</strong><br>'
+           + '· <strong>KIPRIS 해외 데이터베이스에 수록되지 않은 경우</strong></p>'
+           + '<p class="patent-empty-desc">등록번호가 있다면 등록번호 탭에서도 조회해 보시고, '
+           + '국가 선택이 맞는지도 확인해 주세요.</p>'
+           + '</div>';
+    }
+
+    return '<div class="board-empty">검색 결과가 없습니다. 번호 형식을 확인해 주세요.</div>';
+  }
+
+  // 국가코드 가져오기
     let country = 'KR';
     if (_patentSearchType === 'application') {
       const sel = document.getElementById('patent-app-country');
@@ -3602,7 +3671,7 @@ header {
         return;
       }
       if (!json.items || !json.items.length) {
-        area.innerHTML = '<div class="board-empty">검색 결과가 없습니다. 번호 형식을 확인해 주세요.</div>';
+        area.innerHTML = patentEmptyMessage(_patentSearchType, query, country);
         return;
       }
 
