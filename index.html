@@ -4150,6 +4150,69 @@ header {
   /* ② 떠 있는 버튼은 원본의 '맨 위로'(scroll-top-btn) 를 그대로 씁니다.
         원본에 표시 조건과 하단 영역 겹침 처리가 이미 들어 있어 덮어쓸 것이 없습니다. */
 
+  /* ── ③ 발명자 이름 채우기 — 해외 특허 대응 (2026-09 추가) ──────────
+     원본 loadInventors 는 무조건 inventors 창구에 물어봅니다.
+     그런데 그 창구는 국내 전용 서비스(patUtiModInfoSearchSevice)를 부르므로
+     해외 특허는 아무것도 찾지 못하고 '정보 없음' 으로 남았습니다.
+
+     확인해 보니 해외 목록 응답에는 발명자가 이미 들어 있습니다.
+       예) 미국 12411410 → inventor: "Lung Dai"
+     → 값이 이미 있으면 그대로 쓰고, 없는 것만 창구에 물어봅니다.
+        해외는 물어봐야 소용없으므로 아예 부르지 않습니다 (KIPRIS 호출도 줄어듭니다). */
+  window.loadInventors = async function (list) {
+
+    /* 발명자 칸 하나를 채운다. 원본과 같은 모양으로 그린다. */
+    function fill(appNo, name) {
+      var box = document.getElementById('inv-' + appNo);
+      if (!box) return;
+      if (name) {
+        var safe = String(name).replace(/"/g, '&quot;');
+        box.innerHTML = esc(name)
+          + '<button class="cell-copy-btn" onclick="copySingleCell(this, this.dataset.v)"'
+          + ' data-v="' + safe + '">복사</button>';
+      } else {
+        box.innerHTML = '<span class="cell-v muted">정보 없음</span>';
+      }
+    }
+
+    var need = [];   // 창구에 물어봐야 하는 출원번호
+
+    (list || []).forEach(function (p) {
+      var appNo = (p.applicationNumber || '').replace(/[^0-9]/g, '');
+      if (!appNo) return;
+
+      var already = p.inventors || p.inventor;   // 목록 응답에 이미 들어 있는 값
+      if (already) {
+        p.inventors = already;                   // '특허정보 복사' 에도 쓰이도록 통일
+        fill(appNo, already);
+      } else if ((p.country || 'KR') === 'KR') {
+        need.push(appNo);                        // 국내만 따로 물어본다
+      } else {
+        fill(appNo, '');                         // 해외인데 값도 없으면 KIPRIS 미제공
+      }
+    });
+
+    if (!need.length) return;
+
+    try {
+      var res  = await fetch(INVENTORS_URL + '?nums=' + encodeURIComponent(need.join(',')));
+      var json = await res.json();
+      var map  = json.map || {};
+      need.forEach(function (n) {
+        var name = map[n] || '';
+        list.forEach(function (p) {
+          if ((p.applicationNumber || '').replace(/[^0-9]/g, '') === n) p.inventors = name;
+        });
+        fill(n, name);
+      });
+    } catch (e) {
+      need.forEach(function (n) {
+        var box = document.getElementById('inv-' + n);
+        if (box) box.innerHTML = '<span class="cell-v muted">불러오지 못함</span>';
+      });
+    }
+  };
+
   document.addEventListener('DOMContentLoaded', function () {
     var d = dlg();
     // ESC 로 닫을 때도 입력값이 정리되도록 (<dialog> 기본 동작 보완)
