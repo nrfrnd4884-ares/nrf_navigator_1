@@ -4213,10 +4213,47 @@ header {
     }
   };
 
+  /* ── ④ 국가별 번호 표기 안내 (2026-09 추가) ───────────────
+     나라마다 번호 적는 방식이 달라 같은 안내문을 둘러 쓰면 오해가 생긴다.
+     예) 일본 등록번호는 KIPRIS 가 여덟 자리로 맞추어 보관한다 (07675460).
+     번호 변환은 서버가 하고, 여기서는 '어떻게 적으면 되는지' 만 알려 준다. */
+  var NUM_HINT = {
+    application: {
+      KR: '하이픈(-) 포함 또는 미포함 모두 가능합니다.',
+      JP: '일본 출원번호는 KIPRIS 표기가 일본 연호 기준이라 가지고 계신 번호와 다를 수 있습니다. 조회되지 않으면 등록번호로 찾아보세요.',
+      CN: '예) ZL202180056717.6 — 적혀 있는 그대로 입력해 주세요.'
+    },
+    registration: {
+      KR: '하이픈(-) 포함 또는 미포함 모두 가능합니다.',
+      JP: '예) 7675460 또는 07675460 — 앞의 0 은 있어도 없어도 됩니다.',
+      CN: '예) ZL202180056717.6 — 적혀 있는 그대로 입력해 주세요.'
+    }
+  };
+
+  function syncNumHint(kind) {
+    var panelId  = (kind === 'application') ? 'patent-application-panel' : 'patent-registration-panel';
+    var selectId = (kind === 'application') ? 'patent-app-country'       : 'patent-reg-country';
+    var panel = document.getElementById(panelId);
+    var sel   = document.getElementById(selectId);
+    if (!panel || !sel) return;
+    var p = panel.querySelector('p');
+    if (!p) return;
+    var table = NUM_HINT[kind] || {};
+    p.textContent = table[sel.value] || table.KR;
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     var d = dlg();
     // ESC 로 닫을 때도 입력값이 정리되도록 (<dialog> 기본 동작 보완)
     if (d) d.addEventListener('close', function () { window.closeWriteModal(); });
+
+    ['application', 'registration'].forEach(function (kind) {
+      var selectId = (kind === 'application') ? 'patent-app-country' : 'patent-reg-country';
+      var sel = document.getElementById(selectId);
+      if (!sel) return;
+      sel.addEventListener('change', function () { syncNumHint(kind); });
+      syncNumHint(kind);   // 처음 열렸을 때도 한 번 맞춘다
+    });
   });
 
 })();
