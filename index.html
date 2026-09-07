@@ -4213,33 +4213,59 @@ header {
     }
   };
 
-  /* ── ④ 국가별 번호 표기 안내 (2026-09 추가) ───────────────
-     나라마다 번호 적는 방식이 달라 같은 안내문을 둘러 쓰면 오해가 생긴다.
-     예) 일본 등록번호는 KIPRIS 가 여덟 자리로 맞추어 보관한다 (07675460).
-     번호 변환은 서버가 하고, 여기서는 '어떻게 적으면 되는지' 만 알려 준다. */
-  var NUM_HINT = {
+  /* ── ④ 국가별 번호 표기 안내 (2026-09 추가) ─────────────────
+     나라마다 번호 적는 방식이 달라서, 한국 예시(10-1234567)를 그대로
+     보여주면 다른 나라 이용자가 형식을 잘못 넣게 된다.
+     국가를 고르면 입력창 예시와 아래 안내문을 함께 바꿔 준다.
+
+     번호 변환은 서버(patent.js)가 하고, 여기서는 '어떻게 적으면 되는지'
+     만 알려 준다. 확인된 예시만 넣었고, 확인 못 한 나라는 예시를 비워
+     둔다. 틀린 예시를 보여주는 것이 예시가 없는 것보다 나쁘다. */
+  var NUM_GUIDE = {
     application: {
-      KR: '하이픈(-) 포함 또는 미포함 모두 가능합니다.',
-      JP: '일본 출원번호는 KIPRIS 표기가 일본 연호 기준이라 가지고 계신 번호와 다를 수 있습니다. 조회되지 않으면 등록번호로 찾아보세요.',
-      CN: '예) ZL202180056717.6'
+      KR: { ph: '출원번호 입력 (예: 10-2024-0012345)' },
+      US: { ph: '출원번호 입력 (예: 12411410)' },
+      EP: { ph: '출원번호 입력 (예: 20889312.3)' },
+      JP: { ph: '출원번호 입력 (예: 35561313)',
+            hint: '일본 출원번호는 KIPRIS가 연호 기준으로 보관해 가지고 계신 번호와 다를 수 있습니다. 조회되지 않으면 등록번호로 찾아보세요.' },
+      CN: { ph: '출원번호 입력 (예: 202180056717.6)',
+            hint: 'ZL을 붙여 입력해도 조회됩니다.' },
+      WO: { ph: '출원번호 입력 (예: PCT/KR2021/012345)' }
     },
     registration: {
-      KR: '하이픈(-) 포함 또는 미포함 모두 가능합니다.',
-      JP: '예) 7675460 또는 07675460',
-      CN: '예) ZL202180056717.6'
+      KR: { ph: '등록번호 입력 (예: 10-1234567)' },
+      US: { ph: '등록번호 입력 (예: 12190795)' },
+      EP: { ph: '등록번호 입력 (예: 04062951)',
+            hint: '앞의 0을 빼고 4062951로 입력해도 조회됩니다.' },
+      JP: { ph: '등록번호 입력 (예: 07675460)',
+            hint: '앞의 0을 빼고 7675460으로 입력해도 조회됩니다.' },
+      CN: { ph: '등록번호 입력 (예: ZL202180056717.6)',
+            hint: '중국은 등록번호와 출원번호가 같은 번호를 씁니다.' },
+      WO: { ph: '등록번호 입력',
+            hint: 'PCT 국제출원은 등록번호가 없습니다. 출원번호 탭에서 조회해 주세요.' }
     }
   };
 
+  var HINT_DEFAULT = '하이픈(-) 포함 또는 미포함 모두 가능합니다.';
+
   function syncNumHint(kind) {
-    var panelId  = (kind === 'application') ? 'patent-application-panel' : 'patent-registration-panel';
-    var selectId = (kind === 'application') ? 'patent-app-country'       : 'patent-reg-country';
+    var isApp    = (kind === 'application');
+    var panelId  = isApp ? 'patent-application-panel' : 'patent-registration-panel';
+    var selectId = isApp ? 'patent-app-country'       : 'patent-reg-country';
+    var inputId  = isApp ? 'patent-app-input'         : 'patent-reg-input';
+
     var panel = document.getElementById(panelId);
     var sel   = document.getElementById(selectId);
+    var input = document.getElementById(inputId);
     if (!panel || !sel) return;
+
+    var table = NUM_GUIDE[kind] || {};
+    var g     = table[sel.value] || table.KR || {};
+
+    if (input && g.ph) input.placeholder = g.ph;
+
     var p = panel.querySelector('p');
-    if (!p) return;
-    var table = NUM_HINT[kind] || {};
-    p.textContent = table[sel.value] || table.KR;
+    if (p) p.textContent = g.hint || HINT_DEFAULT;
   }
 
   document.addEventListener('DOMContentLoaded', function () {
