@@ -4287,6 +4287,141 @@ header {
     });
   });
 
+  /* ── ⑤ 상담 게시판을 Firebase 창구로 연결 (2026-09 추가) ───────────
+     게시판이 보던 곳: Apps Script(구글 시트)
+     이제 보는 곳    : Cloud Functions(Firestore) — 담당자 화면과 같은 창고
+
+     원본의 목록 그리기(renderBoard)·페이지 나누기·'내 질문' 표시는
+     그대로 두고, 자료를 가져오고 보내는 두 가지만 여기서 갈아끼운다.
+     서버가 한글 항목명(제목·질문·답변여부…)으로 주기 때문에
+     원본이 쓰던 이름(title·question·answered…)으로 옮겨 담아 건넨다.
+
+     되돌리려면 이 ⑤번 덩어리만 지우면 예전 방식으로 돌아간다.
+     (FAQ·공지사항은 손대지 않았고 계속 Apps Script 를 쓴다) */
+
+  var BOARD_LIST_URL   = 'https://asia-northeast3-nrf-helper.cloudfunctions.net/boardList';
+  var BOARD_SUBMIT_URL = 'https://asia-northeast3-nrf-helper.cloudfunctions.net/boardSubmit';
+
+  /* 분류 목록 — 예전에는 구글 시트에서 받아왔다.
+     바꾸실 일이 있으면 이 줄만 고치면 필터 버튼과 작성창 선택지가 함께 바뀐다. */
+  var BOARD_CATS = ['성과등록', '시스템오류', '개선의견', '기타'];
+
+  /* 서버가 주는 시각은 세계 표준시(2026-09-11T05:00:14.970Z)라
+     그대로 보여주면 우리 시간보다 9시간 이르게 읽힌다.
+     보는 사람 컴퓨터의 시간대로 바꿔 '2026-09-11 14:00' 모양으로 만든다. */
+  function boardDate(v) {
+    if (!v) return '';
+    if (typeof v === 'object') v = v._seconds ? v._seconds * 1000 : (v.seconds ? v.seconds * 1000 : v);
+    var d = new Date(v);
+    if (isNaN(d.getTime())) return String(v);      // 날짜로 못 읽으면 받은 값을 그대로
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+         + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  /* 답변여부가 true / 'Y' / '답변완료' 중 무엇으로 오더라도 같게 읽는다.
+     값이 비어 있으면 답변 글이 있는지로 판단한다. */
+  function boardDone(it) {
+    var v = it['답변여부'];
+    if (v === true) return true;
+    if (v === false || v == null || v === '') return !!String(it['답변'] || '').trim();
+    var s = String(v).trim().toLowerCase();
+    return s === 'y' || s === 'true' || s === '1' || s === '완료' || s === '답변완료';
+  }
+
+  /* 서버 항목 → 원본 스크립트가 알아듣는 이름으로 옮겨 담기 */
+  function boardMap(it) {
+    return {
+      id:       it.id,
+      title:    String(it['제목'] || ''),
+      question: String(it['질문'] || ''),
+      answer:   String(it['답변'] || ''),
+      answered: boardDone(it),
+      category: it['분류']   || '기타',
+      nickname: it['닉네임'] || '익명',
+      date:     boardDate(it['등록일'])
+    };
+  }
+
+  /* 목록 불러오기 */
+  window.loadBoard = async function () {
+    await loadBoardCategories();
+    loadMyIds();
+    var el = document.getElementById('board-list');
+    if (!el) return;
+    el.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><span>불러오는 중...</span></div>';
+    try {
+      var res  = await fetch(BOARD_LIST_URL + '?status=all&limit=300');
+      var json = await res.json();
+      _allItems = (json['목록'] || []).map(boardMap);
+      pruneMyIds();
+      updateMineBtn();
+      renderBoard();
+    } catch (e) {
+      el.innerHTML = '<div class="board-empty">불러오기 실패. 잠시 후 다시 시도해주세요.</div>';
+    }
+  };
+
+  /* 분류 목록 — 이제 서버에 묻지 않고 위 BOARD_CATS 를 쓴다 */
+  window.loadBoardCategories = async function () {
+    _boardCategories = BOARD_CATS.slice();
+    _boardCategoriesLoaded = true;
+    renderBoardCategoryControls();
+  };
+
+  /* 질문 등록 */
+  var _boardSubmitting = false;        // 두 번 눌려 같은 질문이 두 건 들어가는 것을 막는다
+
+  window.submitQuestion = async function () {
+    if (_boardSubmitting) return;
+
+    var title = document.getElementById('w-title').value.trim();
+    var q     = document.getElementById('w-question').value.trim();
+    var cat   = document.getElementById('w-category').value;
+    var nick  = document.getElementById('w-nickname').value.trim() || '익명';
+    if (!title) { document.getElementById('w-title').focus(); return; }
+    if (!q)     { document.getElementById('w-question').focus(); return; }
+
+    var btn = document.getElementById('submit-btn');
+    _boardSubmitting = true;
+    btn.disabled = true;
+    btn.textContent = '등록 중...';
+
+    try {
+      var body = new URLSearchParams({ title: title, question: q, category: cat, nickname: nick });
+      var res  = await fetch(BOARD_SUBMIT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: body.toString()
+      });
+
+      /* 서버가 돌려준 번호를 '내 질문' 표시에 쓴다.
+         응답을 읽지 못해도 질문 자체는 이미 저장된 상태라 실패로 보지 않는다. */
+      var json = {};
+      try { json = await res.json(); } catch (e) {}
+      var id = json.id || json['문의ID'] || json['문서ID'] || null;
+      if (id) rememberMyId(id);
+
+      showReceiptView(true);
+      await loadBoard();
+
+      /* 번호를 못 받았으면 방금 올라온 글을 제목·닉네임으로 찾아 표시한다 */
+      if (!id) {
+        var mine = _allItems.filter(function (x) {
+          return x.title === title && x.nickname === nick && !x.answered;
+        });
+        if (mine.length) { rememberMyId(mine[0].id); updateMineBtn(); renderBoard(); }
+      }
+    } catch (e) {
+      alert('제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
+
+    _boardSubmitting = false;
+    btn.disabled = false;
+    btn.textContent = '제출';
+  };
+
+
 })();
 </script>
 

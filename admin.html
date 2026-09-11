@@ -348,6 +348,19 @@ main { max-width: 1400px; margin: 0 auto; padding: 24px; }
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  /* 서버가 주는 시각은 세계 표준시(2026-09-11T05:00:14.970Z)라
+     그대로 두면 우리 시간보다 9시간 이르게 읽힌다.
+     보는 사람 컴퓨터의 시간대로 바꿔 '2026-09-11 14:00' 모양으로 만든다. */
+  function fmtDate(v) {
+    if (!v) return '';
+    if (typeof v === 'object') v = v._seconds ? v._seconds * 1000 : (v.seconds ? v.seconds * 1000 : v);
+    var d = new Date(v);
+    if (isNaN(d.getTime())) return String(v);
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+         + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
   function toast(msg) {
     var t = $('toast');
     t.textContent = msg;
@@ -451,7 +464,7 @@ main { max-width: 1400px; margin: 0 auto; padding: 24px; }
         + '<div class="q-title">' + esc(title) + '</div>'
         + '<div class="q-preview">' + esc(preview) + '</div>'
         + '<div class="q-meta"><span>' + esc(it['닉네임'] || '익명') + '</span>'
-        +   '<span>' + esc(it['등록일'] || '') + '</span></div>'
+        +   '<span>' + esc(fmtDate(it['등록일'])) + '</span></div>'
         + '</button>';
     }).join('');
   }
@@ -474,12 +487,12 @@ main { max-width: 1400px; margin: 0 auto; padding: 24px; }
     $('d-cat').textContent     = it['분류'] || '기타';
     $('d-cat').className       = 'q-cat' + (done ? ' answered' : '');
     $('d-status').textContent  = done ? '답변완료' + (it['답변자'] ? ' · ' + it['답변자'] : '')
-                                        + (it['답변일'] ? ' · ' + it['답변일'] : '')
+                                        + (it['답변일'] ? ' · ' + fmtDate(it['답변일']) : '')
                                       : '답변대기';
     $('d-status').className    = 'q-status ' + (done ? 'done' : 'wait');
     $('d-title').textContent   = it['제목'] || '(제목 없음)';
     $('d-nick').textContent    = it['닉네임'] || '익명';
-    $('d-date').textContent    = it['등록일'] || '';
+    $('d-date').textContent    = fmtDate(it['등록일']);
     $('d-question').textContent = it['질문'] || '';
 
     // 이미 답변이 있으면 그 내용을 불러와 고쳐 쓸 수 있게 한다
