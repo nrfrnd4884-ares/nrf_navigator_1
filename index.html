@@ -1023,6 +1023,13 @@ header {
   @media (min-width: 1100px) {
     .rc-grid, .patent-grid { grid-template-columns: 1fr 1fr; }
   }
+
+  /* ── 입력 전 확인사항 : 문장이 어중간하게 끊기지 않도록 ──────
+     뒤쪽 구절을 한 덩어리로 묶어, 줄이 바뀌어도 뜻이 끊기지 않게 한다.
+     화면이 좁을 때는 평소대로 줄바꿈되도록 넓은 화면에서만 적용한다. */
+  @media (min-width: 768px) {
+    .check-list .nb { white-space: nowrap; }
+  }
 </style>
 </head>
 <body class="is-home">
@@ -1172,9 +1179,9 @@ header {
       <ul class="check-list">
         <li>해당 논문이 수행 과제와 관련된 성과인가요?</li>
         <li>과제 참여자가 논문 성과 창출에 기여했나요?</li>
-        <li>사사표기에 과제번호 또는 지원사업 정보가 명시되어 있나요?</li>
-        <li>Accepted, Early Access, Preprint가 아닌 최종 출판 논문인가요?</li>
-        <li>DOI, ISSN, 권·호, 게재일자 등 입력 정보가 확인되었나요?</li>
+        <li>사사표기에 과제번호 또는 <span class="nb">지원사업 정보가 명시되어 있나요?</span></li>
+        <li>Accepted, Early Access, Preprint가 아닌 <span class="nb">최종 출판 논문인가요?</span></li>
+        <li>DOI, ISSN, 권·호, 게재일자 등 <span class="nb">입력 정보가 확인되었나요?</span></li>
         <li>SCIE 여부는 별도 자료를 통해 확인했나요?</li>
       </ul>
       <div class="check-note">※ 최종 성과 인정 여부는 사업별 기준 및 담당자 확인이 필요합니다.</div>
@@ -1277,11 +1284,11 @@ header {
       <p class="check-desc">특허 성과는 과제 관련성, 사사표기 또는 과제 연계 근거, 출원·등록 정보, 출원인 명의 및 발명자 정보를 함께 확인해야 합니다.<br>조회 결과는 성과입력 편의를 위한 참고자료로 활용해 주세요.</p>
       <ul class="check-list">
         <li>해당 특허가 수행 과제와 관련된 성과인가요?</li>
-        <li>과제 참여자 또는 수행기관이 특허 성과와 관련되어 있나요?</li>
-        <li>사사표기에 과제번호 또는 지원사업 정보가 명시되어 있나요?</li>
+        <li>과제 참여자 또는 수행기관이 <span class="nb">특허 성과와 관련되어 있나요?</span></li>
+        <li>사사표기에 과제번호 또는 <span class="nb">지원사업 정보가 명시되어 있나요?</span></li>
         <li>출원번호 또는 등록번호가 정확한가요?</li>
-        <li>출원일, 등록일, 출원인, 발명자 정보가 확인되었나요?</li>
-        <li>출원인이 개인 명의가 아닌 주관기관 명의로 되어 있나요?</li>
+        <li>출원일, 등록일, 출원인, <span class="nb">발명자 정보가 확인되었나요?</span></li>
+        <li>출원인이 개인 명의가 아닌 <span class="nb">주관기관 명의로 되어 있나요?</span></li>
       </ul>
       <div class="check-note">※ 비공개 특허 또는 일부 해외 특허는 조회되지 않을 수 있습니다.</div>
     </div>
