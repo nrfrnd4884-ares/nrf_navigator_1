@@ -4523,6 +4523,44 @@ header {
   });
 
 
+  /* ── ⑦ CrossRef 자료의 '&amp;' 문제 보정 (2026-09 추가) ──────────
+     CrossRef 는 학술지명 등에 &, <, > 를 HTML 기호(&amp; 등)로 바꿔서 준다.
+     화면에서 한 번 더 변환하기 때문에 'Biomedicine &amp; Pharmacotherapy'
+     처럼 기호가 그대로 보인다.
+     받은 값을 먼저 원래 글자로 되돌린 뒤 화면에 넣도록 보정한다.
+     복사 버튼으로 나가는 글자도 같이 정리한다. */
+
+  function decodeEntities(v) {
+    var s = String(v == null ? '' : v);
+    if (s.indexOf('&') === -1) return s;          // 기호가 없으면 그대로
+    var box = document.createElement('textarea');
+    box.innerHTML = s;
+    return box.value;
+  }
+
+  var _origEsc = window.esc;
+  window.esc = function (v) { return _origEsc(decodeEntities(v)); };
+
+  var _origCopySingleCell = window.copySingleCell;
+  window.copySingleCell = function (btn, text) {
+    return _origCopySingleCell.call(this, btn, decodeEntities(text));
+  };
+
+  var _origCopyInfo = window.copyInfo;
+  window.copyInfo = function () {
+    for (var k in _copyData) {
+      if (typeof _copyData[k] === 'string') {
+        _copyData[k] = decodeEntities(_copyData[k]);
+      } else if (Array.isArray(_copyData[k])) {
+        _copyData[k] = _copyData[k].map(function (x) {
+          return typeof x === 'string' ? decodeEntities(x) : x;
+        });
+      }
+    }
+    return _origCopyInfo.apply(this, arguments);
+  };
+
+
 })();
 </script>
 
