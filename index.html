@@ -4429,6 +4429,100 @@ header {
   };
 
 
+  /* ── ⑥ SCIE 구분 자동 판정 (2026-09 추가) ─────────────────────
+     Web of Science 등재 학술지(SCIE·SSCI·A&HCI) ISSN 목록을 미리 받아 두고,
+     조회된 논문의 ISSN 이 그 안에 있으면 SCI, 없으면 비SCI 로 표시한다.
+
+     목록 파일 : scie-issn.json  (index.html 과 같은 위치)
+     갱신 방법 : Master Journal List 에서 CSV 를 새로 받아 json 만 교체.
+                index.html 은 손대지 않아도 된다.
+
+     ※ 목록에 없다고 반드시 비등재인 것은 아니므로
+       (ISSN 이 다르게 등록된 경우 등) 확인 링크는 그대로 남긴다. */
+
+  var SCI_LIST_URL = 'scie-issn.json';
+  var SCI_BASIS    = 'Master Journal List 2026년 8월 기준';
+
+  var _sciSet = null, _sciLoading = null, _sciSeq = 0;
+
+  function loadSciList() {
+    if (_sciSet) return Promise.resolve(_sciSet);
+    if (!_sciLoading) {
+      _sciLoading = fetch(SCI_LIST_URL)
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var blob = j['목록'] || '', set = new Set();
+          for (var i = 0; i + 8 <= blob.length; i += 8) set.add(blob.substr(i, 8));
+          _sciSet = set;
+          return set;
+        });
+    }
+    return _sciLoading;
+  }
+
+  /* '1229-1234' → '12291234' 처럼 비교용으로 다듬는다 */
+  function normIssn(v) { return String(v || '').replace(/[^0-9Xx]/g, '').toUpperCase(); }
+
+  /* 인쇄본·온라인 ISSN 중 하나라도 목록에 있으면 등재로 본다 */
+  function judgeSci(issnList, set) {
+    var list = issnList || [];
+    for (var i = 0; i < list.length; i++) {
+      var parts = String(list[i]).split(/[;,]/);
+      for (var j = 0; j < parts.length; j++) {
+        var v = normIssn(parts[j]);
+        if (v.length === 8 && set.has(v)) return true;
+      }
+    }
+    return false;
+  }
+
+  var WOS_LINK =
+      '<a class="lookup-link" href="https://mjl.clarivate.com/search-results"'
+    + ' target="_blank" rel="noopener" title="Web of Science에서 확인">Web of Science에서 확인'
+    + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>'
+    + '<polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>';
+
+  function fillSciCell(id, verdict) {
+    var mark = document.getElementById(id);
+    if (!mark) return;                      // 그 사이 다른 논문을 조회한 경우
+    var box = mark.closest('.rc-cell');
+    if (!box) return;
+
+    if (!verdict) {                         // 목록을 받지 못했을 때는 예전처럼 안내
+      box.innerHTML = '<div class="cell-l">SCIE 구분</div>'
+                    + '<div class="cell-v muted">직접 입력 필요</div>' + WOS_LINK;
+      return;
+    }
+    box.innerHTML = '<div class="cell-l">SCIE 구분</div>'
+      + '<div class="cell-v">' + verdict + '<span class="auto-note">자동 판정</span></div>'
+      + '<span class="auto-caution">※ ' + SCI_BASIS + '</span>'
+      + WOS_LINK;
+  }
+
+  /* SCIE 구분 칸만 갈아끼우고, 임팩트팩터·ISSN 포털은 원래 동작 그대로 둔다 */
+  var _origLookupCell = window.lookupCell;
+  window.lookupCell = function (kind, issnList) {
+    if (kind !== 'SCIE') return _origLookupCell.apply(this, arguments);
+
+    var id    = 'sci-judge-' + (++_sciSeq);
+    var issns = (issnList || []).slice();
+
+    loadSciList()
+      .then(function (set) { fillSciCell(id, judgeSci(issns, set) ? 'SCI' : '비SCI'); })
+      .catch(function ()   { fillSciCell(id, null); });
+
+    return '<span id="' + id + '" class="cell-v muted">조회 중...</span>';
+  };
+
+  /* 검색창에 처음 손을 대는 순간 목록을 미리 받아 둔다 (결과 화면에서 기다리지 않도록) */
+  document.addEventListener('DOMContentLoaded', function () {
+    ['title-input', 'doi-input'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('focus', function () { loadSciList(); }, { once: true });
+    });
+  });
+
+
 })();
 </script>
 
