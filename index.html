@@ -1030,6 +1030,9 @@ header {
   @media (min-width: 768px) {
     .check-list .nb { white-space: nowrap; }
   }
+
+  /* ── ISSN 이 두 개일 때 줄마다 복사 버튼을 두므로 줄 간격을 준다 ── */
+  .rc-cell .cell-copy + .cell-copy { margin-top: 5px; }
 </style>
 </head>
 <body class="is-home">
@@ -4558,6 +4561,61 @@ header {
       }
     }
     return _origCopyInfo.apply(this, arguments);
+  };
+
+
+  /* ── ⑧ ISSN 이 두 개일 때 줄을 나눈다 (2026-09 추가) ───────────
+     CrossRef 는 인쇄판·온라인판 ISSN 을 함께 준다.
+     한 칸에 '2233-6079;2233-6087' 로 붙여 두면 복사한 뒤 손으로 잘라야 하므로,
+     한 줄에 하나씩 놓고 줄마다 복사 버튼을 붙인다.
+     (저자를 1명 = 1칸으로 두는 것과 같은 이유) */
+
+  /* CrossRef 는 ISSN 종류(인쇄판/온라인판)도 함께 준다.
+     결과를 그릴 때 그 값을 받아 두었다가 번호 옆에 표시한다. */
+  var _issnTypes = [];
+
+  var _origRenderResult = window.renderResult;
+  window.renderResult = function (w, doi) {
+    _issnTypes = (w && w['issn-type']) || [];
+    return _origRenderResult.apply(this, arguments);
+  };
+
+  var ISSN_TYPE_LABEL = { print: '인쇄판', electronic: '온라인판' };
+
+  function issnTypeLabel(issn) {
+    var key = String(issn).replace(/[^0-9Xx]/g, '').toUpperCase();
+    for (var i = 0; i < _issnTypes.length; i++) {
+      var t = _issnTypes[i] || {};
+      if (String(t.value || '').replace(/[^0-9Xx]/g, '').toUpperCase() === key) {
+        return ISSN_TYPE_LABEL[t.type] || '';
+      }
+    }
+    return '';
+  }
+
+  var _origCell = window.cell;
+  window.cell = function (label, val, full, copyVal, cellId) {
+    if (label !== 'ISSN' || copyVal === undefined) {
+      return _origCell.apply(this, arguments);
+    }
+    var list = String(copyVal).split(/[;,]/)
+                 .map(function (v) { return v.trim(); })
+                 .filter(Boolean);
+
+    var labels = list.map(issnTypeLabel);
+    var hasLabel = labels.some(function (x) { return !!x; });
+    if (list.length < 2 && !hasLabel) return _origCell.apply(this, arguments);
+
+    var rows = list.map(function (v, i) {
+      return '<div class="cell-copy"><div class="cell-v">' + v
+           + (labels[i] ? '<span class="auto-note">' + labels[i] + '</span>' : '')
+           + '</div>'
+           + '<button class="cell-copy-btn" onclick="copySingleCell(this, this.dataset.v)"'
+           + ' data-v="' + v + '">복사</button></div>';
+    }).join('');
+
+    return '<div class="rc-cell' + (full ? ' full' : '') + '">'
+         + '<div class="cell-l">ISSN</div>' + rows + '</div>';
   };
 
 
