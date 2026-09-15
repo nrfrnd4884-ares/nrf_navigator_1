@@ -4425,6 +4425,64 @@ header {
   };
 
 
+  /* ── ⑨ 구글 시트 호출 줄이기 (2026-09 추가) ─────────────────────
+     FAQ·공지사항은 Apps Script(구글 시트)에서 받아오는데 응답이 6~12초로 느리다.
+     그런데 지금은 같은 자료를 여러 번 부르고 있다.
+       · 화면에 뿌릴 FAQ 와 AI 상담이 참고할 FAQ 를 따로 부른다
+       · 화면을 열 때마다 매번 다시 부른다
+     느린 요청이 겹치면 대기 시간이 몇 배로 늘어난다.
+
+     그래서 구글 시트로 가는 요청만 가로채
+       · 같은 주소를 이미 받아 왔으면 그 내용을 그대로 돌려주고
+       · 아직 받는 중이면 새로 부르지 않고 그 결과를 함께 기다리며
+       · 실패하면 한 번 더 시도한다.
+     원본 코드는 그대로 두고 부르는 횟수만 줄이는 방식이다.
+     (자료를 새로 받으려면 화면을 새로고침하면 된다) */
+
+  var _sheetCache    = {};   // 주소별로 받아 둔 내용
+  var _sheetWaiting  = {};   // 지금 받는 중인 요청
+  var _origFetch     = window.fetch.bind(window);
+
+  function isSheetUrl(u) { return String(u).indexOf('script.google.com/macros') !== -1; }
+
+  function jsonResponse(text) {
+    return new Response(text, { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  function fetchSheet(url, opts) {
+    return _origFetch(url, opts)
+      .then(function (r) {
+        if (r.ok) return r.text();
+        /* 구글 쪽에서 가끔 404 를 준다. 잠시 뒤 한 번 더 시도한다. */
+        return new Promise(function (go) { setTimeout(go, 700); })
+          .then(function () { return _origFetch(url, opts); })
+          .then(function (r2) {
+            if (!r2.ok) throw new Error('sheet ' + r2.status);
+            return r2.text();
+          });
+      });
+  }
+
+  window.fetch = function (url, opts) {
+    var u = String(url);
+    if (!isSheetUrl(u)) return _origFetch(url, opts);
+
+    if (_sheetCache[u]) return Promise.resolve(jsonResponse(_sheetCache[u]));
+    if (_sheetWaiting[u]) return _sheetWaiting[u].then(jsonResponse);
+
+    var p = fetchSheet(url, opts).then(function (text) {
+      _sheetCache[u] = text;
+      delete _sheetWaiting[u];
+      return text;
+    }, function (e) {
+      delete _sheetWaiting[u];
+      throw e;
+    });
+    _sheetWaiting[u] = p;
+    return p.then(jsonResponse);
+  };
+
+
 })();
 </script>
 
