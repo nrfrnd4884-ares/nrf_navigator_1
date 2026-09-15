@@ -4401,6 +4401,11 @@ header {
 
   var _origCell = window.cell;
   window.cell = function (label, val, full, copyVal, cellId) {
+
+    /* 임팩트팩터 칸은 내보내지 않는다 (2026-09, 과장님 지시).
+       JCR 유료 자료라 값을 채울 수 없어 '직접 입력 필요' 안내만 남아 있었다. */
+    if (label === '임팩트팩터') return '';
+
     if (label !== 'ISSN' || copyVal === undefined) {
       return _origCell.apply(this, arguments);
     }
