@@ -4184,32 +4184,49 @@ header {
     });
   });
 
-  /* ── ⑥ SCIE 구분 자동 판정 (2026-09 추가) ─────────────────────
-     Web of Science 등재 학술지(SCIE·SSCI·A&HCI) ISSN 목록을 미리 받아 두고,
-     조회된 논문의 ISSN 이 그 안에 있으면 SCI, 없으면 비SCI 로 표시한다.
+  /* ── ⑥ SCIE 구분 자동 판정 (2026-09 추가, 저널명 대조 보강) ─────
+     Web of Science 등재 학술지(SCIE·SSCI·A&HCI) 목록을 미리 받아 두고,
+     조회된 논문이 그 안에 있으면 SCI, 없으면 비SCI 로 표시한다.
+
+     확인 순서
+       1) ISSN(인쇄판·온라인판) 이 목록에 있는가        → SCI
+       2) 없으면 학술지명이 목록과 완전히 같은가         → SCI (학술지명 기준)
+       3) 둘 다 아니면                                   → 비SCI
+
+     학술지명은 대소문자·기호·띄어쓰기 차이만 무시하고 글자가 정확히 맞아야 한다.
+     비슷한 이름을 통과시키면 Nature 와 Nature Communications 처럼
+     서로 다른 학술지가 섞이기 때문이다.
 
      목록 파일 : scie-issn.json  (index.html 과 같은 위치)
-     갱신 방법 : Master Journal List 에서 CSV 를 새로 받아 json 만 교체.
-                index.html 은 손대지 않아도 된다.
-
-     ※ 목록에 없다고 반드시 비등재인 것은 아니므로
-       (ISSN 이 다르게 등록된 경우 등) 확인 링크는 그대로 남긴다. */
+     갱신 방법 : Master Journal List 에서 CSV 를 새로 받아 json 만 교체. */
 
   var SCI_LIST_URL = 'scie-issn.json';
   var SCI_BASIS    = 'Master Journal List 2026년 8월 기준';
 
-  var _sciSet = null, _sciLoading = null, _sciSeq = 0;
+  var _sciData = null, _sciLoading = null, _sciSeq = 0;
+
+  /* 결과를 그릴 때 쓰는 값들을 미리 받아 둔다 (ISSN 종류, 학술지명) */
+  var _issnTypes  = [];
+  var _lastJournal = '';
+
+  var _origRenderResult = window.renderResult;
+  window.renderResult = function (w, doi) {
+    _issnTypes   = (w && w['issn-type']) || [];
+    _lastJournal = (w && w['container-title'] && w['container-title'][0]) || '';
+    return _origRenderResult.apply(this, arguments);
+  };
 
   function loadSciList() {
-    if (_sciSet) return Promise.resolve(_sciSet);
+    if (_sciData) return Promise.resolve(_sciData);
     if (!_sciLoading) {
       _sciLoading = fetch(SCI_LIST_URL)
         .then(function (r) { return r.json(); })
         .then(function (j) {
-          var blob = j['목록'] || '', set = new Set();
-          for (var i = 0; i + 8 <= blob.length; i += 8) set.add(blob.substr(i, 8));
-          _sciSet = set;
-          return set;
+          var blob = j['목록'] || '', issn = new Set();
+          for (var i = 0; i + 8 <= blob.length; i += 8) issn.add(blob.substr(i, 8));
+          var names = new Set(String(j['저널명'] || '').split('\n').filter(Boolean));
+          _sciData = { issn: issn, names: names };
+          return _sciData;
         });
     }
     return _sciLoading;
@@ -4218,8 +4235,18 @@ header {
   /* '1229-1234' → '12291234' 처럼 비교용으로 다듬는다 */
   function normIssn(v) { return String(v || '').replace(/[^0-9Xx]/g, '').toUpperCase(); }
 
+  /* 'Biomedicine & Pharmacotherapy' → 'biomedicine and pharmacotherapy'
+     (목록을 만들 때와 같은 방식으로 다듬어야 서로 맞출 수 있다) */
+  function normName(v) {
+    var s = String(v == null ? '' : v);
+    if (s.normalize) s = s.normalize('NFKD');
+    s = s.toLowerCase().split('&').join(' and ');
+    s = s.replace(/[^a-z0-9]+/g, ' ');
+    return s.split(' ').filter(Boolean).join(' ');
+  }
+
   /* 인쇄본·온라인 ISSN 중 하나라도 목록에 있으면 등재로 본다 */
-  function judgeSci(issnList, set) {
+  function hasIssn(issnList, set) {
     var list = issnList || [];
     for (var i = 0; i < list.length; i++) {
       var parts = String(list[i]).split(/[;,]/);
@@ -4231,26 +4258,50 @@ header {
     return false;
   }
 
+  function judgeSci(issnList, journal, data) {
+    if (hasIssn(issnList, data.issn)) return 'issn';
+    var n = normName(journal);
+    if (n && data.names.has(n)) return 'name';
+    return null;
+  }
+
   var WOS_LINK =
       '<a class="lookup-link" href="https://mjl.clarivate.com/search-results"'
     + ' target="_blank" rel="noopener" title="Web of Science에서 확인">Web of Science에서 확인'
     + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>'
     + '<polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>';
 
-  function fillSciCell(id, verdict) {
+  /* 목록에 있으면 'SCI' 로 단정해도 된다. 확인된 사실이기 때문이다.
+     반대로 못 찾은 경우는 '비SCI' 라고 단정하지 않는다.
+     등재 학술지인데도 CrossRef 가 학술지명을 줄임말로 주거나
+     ISSN 을 다르게 등록해 두면 목록에서 찾지 못할 수 있다.
+     화면이 말할 수 있는 것은 '우리 목록에서 찾지 못했다' 까지이므로
+     그렇게만 적고, 연구자가 직접 확인하도록 안내한다. */
+  function fillSciCell(id, verdict, basisNote) {
     var mark = document.getElementById(id);
     if (!mark) return;                      // 그 사이 다른 논문을 조회한 경우
     var box = mark.closest('.rc-cell');
     if (!box) return;
 
-    if (!verdict) {                         // 목록을 받지 못했을 때는 예전처럼 안내
+    if (verdict === 'error') {              // 목록을 받지 못했을 때는 예전처럼 안내
       box.innerHTML = '<div class="cell-l">SCIE 구분</div>'
                     + '<div class="cell-v muted">직접 입력 필요</div>' + WOS_LINK;
       return;
     }
+
+    if (verdict === 'none') {               // 목록에서 찾지 못한 경우
+      box.innerHTML = '<div class="cell-l">SCIE 구분</div>'
+        + '<div class="cell-v muted">목록에서 찾지 못함</div>'
+        + '<span class="auto-caution">※ ' + SCI_BASIS + '<br>'
+        + '등재 학술지라도 ISSN·학술지명 표기가 다르면 찾지 못할 수 있습니다.<br>'
+        + '아래에서 확인 후 입력해 주세요.</span>'
+        + WOS_LINK;
+      return;
+    }
+
     box.innerHTML = '<div class="cell-l">SCIE 구분</div>'
-      + '<div class="cell-v">' + verdict + '<span class="auto-note">자동 판정</span></div>'
-      + '<span class="auto-caution">※ ' + SCI_BASIS + '</span>'
+      + '<div class="cell-v">SCI<span class="auto-note">자동 판정</span></div>'
+      + '<span class="auto-caution">※ ' + SCI_BASIS + (basisNote ? ' · ' + basisNote : '') + '</span>'
       + WOS_LINK;
   }
 
@@ -4259,12 +4310,18 @@ header {
   window.lookupCell = function (kind, issnList) {
     if (kind !== 'SCIE') return _origLookupCell.apply(this, arguments);
 
-    var id    = 'sci-judge-' + (++_sciSeq);
-    var issns = (issnList || []).slice();
+    var id      = 'sci-judge-' + (++_sciSeq);
+    var issns   = (issnList || []).slice();
+    var journal = _lastJournal;
 
     loadSciList()
-      .then(function (set) { fillSciCell(id, judgeSci(issns, set) ? 'SCI' : '비SCI'); })
-      .catch(function ()   { fillSciCell(id, null); });
+      .then(function (data) {
+        var how = judgeSci(issns, journal, data);
+        if (how === 'issn')      fillSciCell(id, 'sci', '');
+        else if (how === 'name') fillSciCell(id, 'sci', '학술지명으로 확인 (ISSN 불일치)');
+        else                     fillSciCell(id, 'none', '');
+      })
+      .catch(function () { fillSciCell(id, 'error', ''); });
 
     return '<span id="' + id + '" class="cell-v muted">조회 중...</span>';
   };
@@ -4276,7 +4333,6 @@ header {
       if (el) el.addEventListener('focus', function () { loadSciList(); }, { once: true });
     });
   });
-
 
   /* ── ⑦ CrossRef 자료의 '&amp;' 문제 보정 (2026-09 추가) ──────────
      CrossRef 는 학술지명 등에 &, <, > 를 HTML 기호(&amp; 등)로 바꿔서 준다.
@@ -4322,16 +4378,7 @@ header {
      한 줄에 하나씩 놓고 줄마다 복사 버튼을 붙인다.
      (저자를 1명 = 1칸으로 두는 것과 같은 이유) */
 
-  /* CrossRef 는 ISSN 종류(인쇄판/온라인판)도 함께 준다.
-     결과를 그릴 때 그 값을 받아 두었다가 번호 옆에 표시한다. */
-  var _issnTypes = [];
-
-  var _origRenderResult = window.renderResult;
-  window.renderResult = function (w, doi) {
-    _issnTypes = (w && w['issn-type']) || [];
-    return _origRenderResult.apply(this, arguments);
-  };
-
+  /* ISSN 종류(인쇄판/온라인판)는 ⑥ 에서 받아 둔 _issnTypes 를 쓴다 */
   var ISSN_TYPE_LABEL = { print: '인쇄판', electronic: '온라인판' };
 
   function issnTypeLabel(issn) {
