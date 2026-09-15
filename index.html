@@ -2773,12 +2773,19 @@ header {
   let _boardCategories = ['성과등록', '시스템 오류', '개선의견', '기타'];
   let _boardCategoriesLoaded = false;
 
+  /* 상담 게시판을 걷어내면서 질문 작성 창(w-question, w-title)이 사라졌다.
+     칸이 없을 때는 그냥 넘어가도록 확인 절차를 넣는다.
+     (없는 칸에 기능을 붙이려다 오류가 나면 뒤따르는 준비 작업이 모두 멈춘다) */
   document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('w-question').addEventListener('input', function() {
-      document.getElementById('q-count').textContent = this.value.length;
+    const wq = document.getElementById('w-question');
+    if (wq) wq.addEventListener('input', function() {
+      const c = document.getElementById('q-count');
+      if (c) c.textContent = this.value.length;
     });
-    document.getElementById('w-title').addEventListener('input', function() {
-      document.getElementById('t-count').textContent = this.value.length;
+    const wt = document.getElementById('w-title');
+    if (wt) wt.addEventListener('input', function() {
+      const c = document.getElementById('t-count');
+      if (c) c.textContent = this.value.length;
     });
   });
 
