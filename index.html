@@ -2492,13 +2492,14 @@ header {
     h += cell('볼륨번호 - 권(호)', volIssue);
     h += cell('ISSN', issnHtml(), false, issnRaw.join(';'));
 
-    /* 4행: 임팩트팩터 | 학술지 게재일자
-       ※ 임팩트팩터는 IRIS 필수 항목이지만 JCR(Clarivate) 유료 데이터라 자동으로 채울 수 없다. */
-    h += cell('임팩트팩터', lookupCell('JCR', issnRaw));
+    /* 4행: 발행국가 | 학술지 게재일자
+       ※ 임팩트팩터 칸을 없애면서(2026-09) 칸이 하나씩 당겨져
+         학술지 게재일자가 왼쪽으로 올라왔다.
+         원래대로 오른쪽에 놓이도록 발행국가와 자리를 맞바꾼다. */
     const gaejae = acceptDate || onlineDate;
-    h += cell('학술지 게재일자', gaejae ? esc(gaejae) + (onlineDate && !acceptDate ? ' <span style="font-size:14px;color:var(--tm);">(온라인)</span>' : '') : '-');
+    const gaejaeCell = cell('학술지 게재일자', gaejae ? esc(gaejae) + (onlineDate && !acceptDate ? ' <span style="font-size:14px;color:var(--tm);">(온라인)</span>' : '') : '-');
 
-    /* 5행: 발행국가 | 학술지 출판일자
+    /* 발행국가
        ※ ISSN이 있으면 OpenAlex로 자동 조회한다(렌더 후 loadCountry가 채움).
          ISSN이 없으면 조회할 방법이 없으니 곧바로 '직접 입력 필요'로 둔다. */
     /* KCI 등재 논문은 정의상 국내 학술지 → OpenAlex 조회 없이 확정.
@@ -2510,6 +2511,9 @@ header {
                 issnRaw.length ? countryPendingHtml(issnRaw) : lookupCell('ISSN_PORTAL', issnRaw),
                 false, undefined, 'country-cell');
     }
+    h += gaejaeCell;
+
+    /* 5행: 학술지 출판일자 */
     h += cell('학술지 출판일자', pubDate ? esc(pubDate) : '-');
 
     /* 6행: DOI 번호 | 국제공동연구 */
