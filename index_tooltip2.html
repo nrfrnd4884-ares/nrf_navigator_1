@@ -4573,7 +4573,11 @@ header {
        남김 : 확인을 요구하는 주의 문구 (예: 실제와 다를 수 있으니 확인해 주세요)
 
      주의 문구를 물음표 안에 넣으면 대부분 보지 않고 지나간다.
-     잘못된 값을 그대로 입력하는 것을 막는 문구이므로 화면에 그대로 둔다. */
+     잘못된 값을 그대로 입력하는 것을 막는 문구이므로 화면에 그대로 둔다.
+
+     한 칸에 두 성격이 섞여 있는 경우가 있다.
+     (예: '기준 시점' + '표기가 다르면 못 찾을 수 있으니 확인해 주세요')
+     줄 단위로 갈라서 근거 줄만 물음표로 올리고 주의 줄은 남긴다. */
   function isWarning(text) {
     return /주세요|주의|확인 후|다를 수 있/.test(text);
   }
@@ -4582,27 +4586,37 @@ header {
     var notes = root.querySelectorAll('.auto-caution:not([data-moved])');
     for (var i = 0; i < notes.length; i++) {
       var note = notes[i];
-
-      if (isWarning(note.textContent || '')) {   // 주의 문구는 그대로 보여 준다
-        note.setAttribute('data-moved', '1');
-        continue;
-      }
+      note.setAttribute('data-moved', '1');
 
       var cell = note.closest('.rc-cell');
       var head = cell && cell.querySelector('.cell-l');
-      if (!head) { note.setAttribute('data-moved', '1'); continue; }
+      if (!head) continue;
 
-      var dot = document.createElement('span');
-      dot.className = 'help-dot';
-      dot.setAttribute('tabindex', '0');
-      dot.setAttribute('role', 'button');
-      dot.setAttribute('aria-label', '설명 보기');
-      dot.textContent = '?';
-      dot.dataset.help = note.innerHTML.replace(/^\s*※\s*/, '');
+      /* 줄 단위로 가른다 */
+      var lines = note.innerHTML.split(/<br\s*\/?>/i);
+      var hide = [], keep = [];
+      lines.forEach(function (line) {
+        var plain = line.replace(/<[^>]*>/g, '').trim();
+        if (!plain) return;
+        (isWarning(plain) ? keep : hide).push(line.replace(/^\s*※\s*/, '').trim());
+      });
 
-      head.appendChild(dot);
-      note.setAttribute('data-moved', '1');
-      note.remove();
+      if (hide.length) {
+        var dot = document.createElement('span');
+        dot.className = 'help-dot';
+        dot.setAttribute('tabindex', '0');
+        dot.setAttribute('role', 'button');
+        dot.setAttribute('aria-label', '설명 보기');
+        dot.textContent = '?';
+        dot.dataset.help = hide.join('<br>');
+        head.appendChild(dot);
+      }
+
+      if (keep.length) {
+        note.innerHTML = '※ ' + keep.join('<br>');   // 주의 문구만 화면에 남긴다
+      } else {
+        note.remove();
+      }
     }
   }
 
