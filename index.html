@@ -1036,6 +1036,10 @@ header {
 
   /* ── 홈 화면 의견 보내기 버튼(메일 링크) 모양 맞추기 ── */
   a.feedback-btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+
+  /* ── ISSN 칸 아래 안내 문구 ── */
+  .issn-note { display: block; margin-top: 6px; font-size: var(--fs-15); line-height: 1.55;
+               color: var(--tm); word-break: keep-all; }
 </style>
 </head>
 <body class="is-home">
@@ -4221,9 +4225,12 @@ header {
   var _lastJournal = '';
 
   var _origRenderResult = window.renderResult;
+  var _lastIsKci = false;
+
   window.renderResult = function (w, doi) {
     _issnTypes   = (w && w['issn-type']) || [];
     _lastJournal = (w && w['container-title'] && w['container-title'][0]) || '';
+    _lastIsKci   = !!(w && w._kci);
     return _origRenderResult.apply(this, arguments);
   };
 
@@ -4419,7 +4426,15 @@ header {
 
     var labels = list.map(issnTypeLabel);
     var hasLabel = labels.some(function (x) { return !!x; });
-    if (list.length < 2 && !hasLabel) return _origCell.apply(this, arguments);
+
+    /* KCI(국내 학술지)는 자료 자체에 인쇄판·온라인판 구분이 없어 번호가 하나만 온다.
+       해외 논문에는 구분이 붙는데 국내 논문에만 없으면 이유를 몰라 오해할 수 있으므로,
+       KCI 논문일 때만 그 까닭을 한 줄로 밝혀 둔다. */
+    var kciNote = (_lastIsKci && !hasLabel)
+      ? '<span class="issn-note">※ 국내 학술지(KCI)는 제공되는 자료에 인쇄판·온라인판 구분이 없어 번호만 표시됩니다.</span>'
+      : '';
+
+    if (list.length < 2 && !hasLabel && !kciNote) return _origCell.apply(this, arguments);
 
     var rows = list.map(function (v, i) {
       return '<div class="cell-copy"><div class="cell-v">' + v
@@ -4430,7 +4445,7 @@ header {
     }).join('');
 
     return '<div class="rc-cell' + (full ? ' full' : '') + '">'
-         + '<div class="cell-l">ISSN</div>' + rows + '</div>';
+         + '<div class="cell-l">ISSN</div>' + rows + kciNote + '</div>';
   };
 
 
