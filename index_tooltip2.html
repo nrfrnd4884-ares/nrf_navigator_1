@@ -1036,16 +1036,16 @@ header {
   a.feedback-btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 
   /* ── 물음표 설명 (검토용 시안) ── */
-  /* 물음표는 값이 아니라 보조 안내이므로 눈에 먼저 들어오면 안 된다.
-     평소에는 회색 테두리로 조용히 두고, 손이 닿을 때만 색이 들어온다. */
+  /* 물음표는 눈에 띄되 값보다 앞서지 않도록 연한 하늘색으로 둔다.
+     손이 닿으면 색이 진해져 누를 수 있다는 것이 드러난다. */
   .help-dot { display: inline-flex; align-items: center; justify-content: center;
-              width: 16px; height: 16px; margin-left: 5px; border-radius: 50%;
-              border: 1px solid var(--border2); background: transparent;
-              color: var(--tm); font-size: 11px; font-weight: var(--fw-semibold);
-              line-height: 1; cursor: help; vertical-align: 1px;
-              transition: color .12s, border-color .12s, background .12s; }
-  .help-dot:hover, .help-dot:focus { border-color: var(--accent); color: var(--accent);
-                                     background: var(--accent-l); outline: none; }
+              width: 20px; height: 20px; margin-left: 6px; border-radius: 50%;
+              background: var(--accent-l); border: 1px solid var(--accent-m);
+              color: var(--accent); font-size: 13px; font-weight: var(--fw-bold);
+              line-height: 1; cursor: help; vertical-align: middle;
+              transition: background .12s, border-color .12s, color .12s; }
+  .help-dot:hover, .help-dot:focus { background: var(--accent-m); border-color: var(--accent);
+                                     color: var(--accent-d); outline: none; }
   .help-dot:focus-visible { box-shadow: var(--focus); }
 
   /* 말풍선은 결과표 안에 두면 칸 경계에서 잘린다.
