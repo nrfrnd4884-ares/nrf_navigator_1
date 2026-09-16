@@ -4569,17 +4569,15 @@ header {
   function hideBubble() { if (_bubble) _bubble.classList.remove('show'); }
 
   /* 감출 것과 남길 것을 가른다.
-       감춤 : 근거·출처를 밝히는 문구 (예: Master Journal List 2026년 8월 기준)
-       남김 : 확인을 요구하는 주의 문구 (예: 실제와 다를 수 있으니 확인해 주세요)
+       감춤 : 어느 자료의 어느 시점을 기준으로 했는지 밝히는 줄
+              (예: Master Journal List 2026년 8월 기준)
+       남김 : 그 밖의 안내·주의 문구
 
-     주의 문구를 물음표 안에 넣으면 대부분 보지 않고 지나간다.
+     안내 문구를 물음표 안에 넣으면 대부분 보지 않고 지나간다.
      잘못된 값을 그대로 입력하는 것을 막는 문구이므로 화면에 그대로 둔다.
-
-     한 칸에 두 성격이 섞여 있는 경우가 있다.
-     (예: '기준 시점' + '표기가 다르면 못 찾을 수 있으니 확인해 주세요')
-     줄 단위로 갈라서 근거 줄만 물음표로 올리고 주의 줄은 남긴다. */
-  function isWarning(text) {
-    return /주세요|주의|확인 후|다를 수 있/.test(text);
+     줄 단위로 갈라서 기준을 밝히는 줄만 물음표로 올린다. */
+  function isBasis(text) {
+    return /Master Journal List/.test(text) || /기준\s*$/.test(text);
   }
 
   function toHelpDots(root) {
@@ -4598,7 +4596,7 @@ header {
       lines.forEach(function (line) {
         var plain = line.replace(/<[^>]*>/g, '').trim();
         if (!plain) return;
-        (isWarning(plain) ? keep : hide).push(line.replace(/^\s*※\s*/, '').trim());
+        (isBasis(plain) ? hide : keep).push(line.replace(/^\s*※\s*/, '').trim());
       });
 
       if (hide.length) {
