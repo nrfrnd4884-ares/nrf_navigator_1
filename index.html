@@ -1054,9 +1054,6 @@ header {
   .author-corr { margin-top: 12px; font-size: var(--fs-15); color: var(--ts); }
   .author-corr .cell-v { display: inline; }
 
-  /* ── ISSN 칸 아래 안내 문구 ── */
-  .issn-note { display: block; margin-top: 6px; font-size: var(--fs-15); line-height: 1.55;
-               color: var(--tm); word-break: keep-all; }
 </style>
 </head>
 <body class="is-home">
@@ -4423,39 +4420,25 @@ header {
   };
 
 
-  /* ── ⑧ ISSN 칸 안내 (2026-09 추가) ────────────────────────────
-     IRIS 는 ISSN 을 ';' 로 이어 붙인 형태로 받으므로,
-     인쇄판·온라인판을 나누지 않고 CrossRef 가 준 그대로 한 줄에 둔다.
-     (한때 두 줄로 나눠 표시했으나 오히려 손이 더 갔다)
-
-     다만 KCI(국내 학술지)는 자료 자체에 번호가 하나만 있어
-     해외 논문과 달라 보일 수 있으므로 그 까닭만 한 줄로 밝힌다. */
+  /* ── ⑧ 결과표 칸 손보기 (2026-09) ──────────────────────────────
+     · 임팩트팩터 칸은 내보내지 않는다 (JCR 유료 자료라 값을 채울 수 없었다)
+     · 학술지 게재일자는 KCI 자료에 항목 자체가 없으므로 그 사실을 밝힌다
+       (KCI Open API 명세서의 날짜 항목은 발행연도·발행월 뿐이고,
+        그 값은 '학술지 출판일자' 칸에 들어간다.
+        '-' 로 두면 조회에 실패한 것처럼 보인다)
+     ISSN 은 IRIS 가 ';' 로 이어 붙인 형태로 받으므로 원래대로 한 줄에 둔다. */
 
   var _origCell = window.cell;
   window.cell = function (label, val, full, copyVal, cellId) {
 
-    /* 임팩트팩터 칸은 내보내지 않는다 (2026-09, 과장님 지시).
-       JCR 유료 자료라 값을 채울 수 없어 '직접 입력 필요' 안내만 남아 있었다. */
     if (label === '임팩트팩터') return '';
 
-    /* 학술지 게재일자 — KCI 자료에는 이 항목 자체가 없다.
-       KCI Open API 명세서의 날짜 항목은 발행연도(pub-year)·발행월(pub-mon) 뿐이고,
-       그 값은 '학술지 출판일자' 칸에 들어간다.
-       '-' 로 두면 조회에 실패한 것처럼 보이므로 없는 항목임을 밝힌다. */
     if (label === '학술지 게재일자' && _lastIsKci) {
       return '<div class="rc-cell"><div class="cell-l">학술지 게재일자</div>'
-           + '<div class="cell-v muted">KCI에서 제공하지 않는 항목입니다</div></div>';
+           + '<div class="cell-v muted">※ KCI API에서 제공하지 않는 항목입니다</div></div>';
     }
 
-    if (label !== 'ISSN' || !_lastIsKci) {
-      return _origCell.apply(this, arguments);
-    }
-
-    /* KCI 논문 — 원래 칸을 그대로 만든 뒤 안내 문구만 덧붙인다 */
-    var html = _origCell.apply(this, arguments);
-    var note = '<span class="issn-note">※ 국내 학술지(KCI)는 제공되는 자료에 '
-             + '인쇄판·온라인판 구분이 없어 번호만 표시됩니다.</span>';
-    return html.replace(/<\/div>\s*$/, note + '</div>');
+    return _origCell.apply(this, arguments);
   };
 
   /* ── ⑨ 구글 시트 호출 줄이기 (2026-09 추가) ─────────────────────
