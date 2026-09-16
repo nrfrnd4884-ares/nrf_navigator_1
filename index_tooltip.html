@@ -1039,23 +1039,17 @@ header {
   .help-dot { display: inline-flex; align-items: center; justify-content: center;
               width: 17px; height: 17px; margin-left: 6px; border-radius: 50%;
               background: var(--accent); color: #fff; font-size: 12px; font-weight: var(--fw-bold);
-              cursor: help; position: relative; vertical-align: middle; }
+              cursor: help; vertical-align: middle; }
   .help-dot:hover, .help-dot:focus { background: var(--accent-d); outline: none; }
-  .help-bubble { display: none; position: absolute; left: 50%; bottom: calc(100% + 8px);
-                 transform: translateX(-50%); width: max-content; max-width: 260px;
-                 padding: 9px 12px; border-radius: var(--r2);
+
+  /* 말풍선은 결과표 안에 두면 칸 경계에서 잘린다.
+     화면 맨 위 층에 띄우고 위치만 자바스크립트로 맞춘다. */
+  #help-bubble { position: fixed; display: none; max-width: 280px;
+                 padding: 10px 13px; border-radius: var(--r2);
                  background: var(--navy); color: #fff; font-size: var(--fs-15);
-                 font-weight: var(--fw-regular); line-height: 1.55; text-align: left;
-                 word-break: keep-all; white-space: normal; z-index: 30;
-                 box-shadow: 0 6px 18px rgba(15,23,42,.22); }
-  .help-bubble::after { content: ''; position: absolute; top: 100%; left: 50%;
-                        transform: translateX(-50%); border: 6px solid transparent;
-                        border-top-color: var(--navy); }
-  .help-dot:hover .help-bubble, .help-dot:focus .help-bubble { display: block; }
-  @media (max-width: 640px) {
-    .help-bubble { left: 0; transform: none; max-width: 70vw; }
-    .help-bubble::after { left: 12px; transform: none; }
-  }
+                 line-height: 1.6; text-align: left; word-break: keep-all;
+                 box-shadow: 0 8px 22px rgba(15,23,42,.28); z-index: 300; pointer-events: none; }
+  #help-bubble.show { display: block; }
 
   /* ── 저자 이름표 ── */
   .author-box   { padding: 14px 20px; }
@@ -4535,12 +4529,44 @@ header {
      결과표 칸 아래에 붙던 주황색 설명 문구(.auto-caution)를
      칸 제목 옆 물음표(?)로 옮긴다. 마우스를 올리거나 누르면 펼쳐진다.
 
-     화면이 눈에 띄게 간결해지는 대신, 설명을 보려면 한 번 더 움직여야 한다.
-     특히 '실제와 다를 수 있으니 확인해 주세요' 같은 주의 문구는
-     감추면 대부분 그냥 지나친다는 점을 감안해야 한다.
+     말풍선은 화면 맨 위 층에 하나만 만들어 두고 위치만 옮겨 쓴다.
+     결과표 안에 넣으면 칸 경계에서 잘리기 때문이다.
 
      ※ 이 파일은 비교용 시안이다. 채택되면 어떤 문구를 감추고
        어떤 문구를 남길지 정한 뒤 본 파일에 반영한다. */
+
+  var _bubble = null;
+
+  function bubble() {
+    if (!_bubble) {
+      _bubble = document.createElement('div');
+      _bubble.id = 'help-bubble';
+      _bubble.setAttribute('role', 'tooltip');
+      document.body.appendChild(_bubble);
+    }
+    return _bubble;
+  }
+
+  function showBubble(dot) {
+    var b = bubble();
+    b.innerHTML = dot.dataset.help || '';
+    b.classList.add('show');
+
+    var r = dot.getBoundingClientRect();
+    var w = b.offsetWidth, h = b.offsetHeight;
+
+    var left = r.left + r.width / 2 - w / 2;
+    if (left < 10) left = 10;
+    if (left + w > window.innerWidth - 10) left = window.innerWidth - w - 10;
+
+    var top = r.top - h - 10;
+    if (top < 10) top = r.bottom + 10;      // 위가 좁으면 아래로 내린다
+
+    b.style.left = left + 'px';
+    b.style.top  = top + 'px';
+  }
+
+  function hideBubble() { if (_bubble) _bubble.classList.remove('show'); }
 
   function toHelpDots(root) {
     var notes = root.querySelectorAll('.auto-caution:not([data-moved])');
@@ -4550,14 +4576,13 @@ header {
       var head = cell && cell.querySelector('.cell-l');
       if (!head) { note.setAttribute('data-moved', '1'); continue; }
 
-      var text = note.innerHTML.replace(/^\s*※\s*/, '');
-
       var dot = document.createElement('span');
       dot.className = 'help-dot';
       dot.setAttribute('tabindex', '0');
       dot.setAttribute('role', 'button');
       dot.setAttribute('aria-label', '설명 보기');
-      dot.innerHTML = '?<span class="help-bubble">' + text + '</span>';
+      dot.textContent = '?';
+      dot.dataset.help = note.innerHTML.replace(/^\s*※\s*/, '');
 
       head.appendChild(dot);
       note.setAttribute('data-moved', '1');
@@ -4568,9 +4593,30 @@ header {
   document.addEventListener('DOMContentLoaded', function () {
     var area = document.getElementById('result-area');
     if (!area) return;
+
     toHelpDots(area);
     /* 발행국가처럼 나중에 채워지는 칸도 있으므로 화면 변화를 지켜본다 */
-    new MutationObserver(function () { toHelpDots(area); }).observe(area, { childList: true, subtree: true });
+    new MutationObserver(function () { toHelpDots(area); })
+      .observe(area, { childList: true, subtree: true });
+
+    /* 마우스·손가락·키보드 모두에서 열리도록 한다 */
+    document.addEventListener('mouseover', function (e) {
+      var dot = e.target.closest && e.target.closest('.help-dot');
+      if (dot) showBubble(dot);
+    });
+    document.addEventListener('mouseout', function (e) {
+      if (e.target.closest && e.target.closest('.help-dot')) hideBubble();
+    });
+    document.addEventListener('focusin', function (e) {
+      var dot = e.target.closest && e.target.closest('.help-dot');
+      if (dot) showBubble(dot); else hideBubble();
+    });
+    document.addEventListener('click', function (e) {
+      var dot = e.target.closest && e.target.closest('.help-dot');
+      if (dot) showBubble(dot); else hideBubble();
+    });
+    window.addEventListener('scroll', hideBubble, true);
+    window.addEventListener('resize', hideBubble);
   });
 
 
