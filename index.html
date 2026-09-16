@@ -4441,63 +4441,60 @@ header {
     return _origCell.apply(this, arguments);
   };
 
-  /* ── ⑨ 구글 시트 호출 줄이기 (2026-09 추가) ─────────────────────
-     FAQ·공지사항은 Apps Script(구글 시트)에서 받아오는데 응답이 6~12초로 느리다.
-     그런데 지금은 같은 자료를 여러 번 부르고 있다.
-       · 화면에 뿌릴 FAQ 와 AI 상담이 참고할 FAQ 를 따로 부른다
-       · 화면을 열 때마다 매번 다시 부른다
-     느린 요청이 겹치면 대기 시간이 몇 배로 늘어난다.
+  /* ── ⑨ FAQ·공지를 Firebase 창구로 (2026-09 수정) ────────────────
+     예전에는 화면이 구글 시트(Apps Script)를 직접 불렀다. 두 가지 문제가 있었다.
+       · 백엔드를 두 군데(Apps Script + Firebase) 관리해야 한다
+       · Apps Script 응답이 느리거나(6~12초) 404 로 실패하는 일이 있었다
 
-     그래서 구글 시트로 가는 요청만 가로채
-       · 같은 주소를 이미 받아 왔으면 그 내용을 그대로 돌려주고
-       · 아직 받는 중이면 새로 부르지 않고 그 결과를 함께 기다리며
-       · 실패하면 한 번 더 시도한다.
-     원본 코드는 그대로 두고 부르는 횟수만 줄이는 방식이다.
-     (자료를 새로 받으려면 화면을 새로고침하면 된다) */
+     이제 Firebase 의 sheet 창구가 대신 구글 시트를 읽어 온다.
+     화면은 Firebase 만 부르면 되고, 담당자의 시트 관리 방식은 그대로다.
+     (창구 쪽에서 10분간 내용을 보관하므로 두 번째부터는 바로 나온다)
 
-  var _sheetCache    = {};   // 주소별로 받아 둔 내용
-  var _sheetWaiting  = {};   // 지금 받는 중인 요청
-  var _origFetch     = window.fetch.bind(window);
+     원본 코드는 그대로 두고, 구글 시트로 나가는 요청만 여기서 새 주소로 바꾼다.
+     같은 자료를 여러 번 부르지 않도록 한 번 받아 온 내용은 화면에서도 기억한다.
+     (새로 받으려면 화면을 새로고침하면 된다) */
 
-  function isSheetUrl(u) { return String(u).indexOf('script.google.com/macros') !== -1; }
+  var SHEET_URL = 'https://asia-northeast3-nrf-helper.cloudfunctions.net/sheet';
+
+  var _sheetCache   = {};   // 자료별로 받아 둔 내용
+  var _sheetWaiting = {};   // 지금 받는 중인 요청
+  var _origFetch    = window.fetch.bind(window);
+
+  /* 구글 시트로 가던 주소에서 무엇을 달라는 요청인지만 꺼낸다 */
+  function sheetAction(u) {
+    if (String(u).indexOf('script.google.com/macros') === -1) return '';
+    var m = String(u).match(/[?&]action=([^&]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
 
   function jsonResponse(text) {
     return new Response(text, { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
 
-  function fetchSheet(url, opts) {
-    return _origFetch(url, opts)
-      .then(function (r) {
-        if (r.ok) return r.text();
-        /* 구글 쪽에서 가끔 404 를 준다. 잠시 뒤 한 번 더 시도한다. */
-        return new Promise(function (go) { setTimeout(go, 700); })
-          .then(function () { return _origFetch(url, opts); })
-          .then(function (r2) {
-            if (!r2.ok) throw new Error('sheet ' + r2.status);
-            return r2.text();
-          });
-      });
-  }
-
   window.fetch = function (url, opts) {
-    var u = String(url);
-    if (!isSheetUrl(u)) return _origFetch(url, opts);
+    var action = sheetAction(url);
+    if (!action) return _origFetch(url, opts);
 
-    if (_sheetCache[u]) return Promise.resolve(jsonResponse(_sheetCache[u]));
-    if (_sheetWaiting[u]) return _sheetWaiting[u].then(jsonResponse);
+    if (_sheetCache[action]) return Promise.resolve(jsonResponse(_sheetCache[action]));
+    if (_sheetWaiting[action]) return _sheetWaiting[action].then(jsonResponse);
 
-    var p = fetchSheet(url, opts).then(function (text) {
-      _sheetCache[u] = text;
-      delete _sheetWaiting[u];
-      return text;
-    }, function (e) {
-      delete _sheetWaiting[u];
-      throw e;
-    });
-    _sheetWaiting[u] = p;
+    var p = _origFetch(SHEET_URL + '?action=' + encodeURIComponent(action))
+      .then(function (r) {
+        if (!r.ok) throw new Error('sheet ' + r.status);
+        return r.text();
+      })
+      .then(function (text) {
+        _sheetCache[action] = text;
+        delete _sheetWaiting[action];
+        return text;
+      }, function (e) {
+        delete _sheetWaiting[action];
+        throw e;
+      });
+
+    _sheetWaiting[action] = p;
     return p.then(jsonResponse);
   };
-
 
   /* ── ⑩ 저자 이름표 복사 (2026-09 추가) ─────────────────────────
      저자를 이름표 형태로 이어 붙이면서, 이름을 누르면 그 사람만 복사되게 한다.
