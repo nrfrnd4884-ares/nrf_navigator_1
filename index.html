@@ -1929,7 +1929,7 @@ header {
          30건만 받으면 검색어와 정확히 맞는 논문이 두세 건밖에 남지 않고,
          찾으려는 논문이 31번째에 있으면 아예 조회되지 않는다.
          화면에 보이는 건수가 늘어나는 것이 아니라 '고를 수 있는 후보'가 넓어지는 것. */
-      const url = 'https://api.crossref.org/works?query.title=' + encodeURIComponent(q) + '&rows=50&select=DOI,title,container-title,published,author,type,volume,issue';
+      const url = 'https://api.crossref.org/works?query.title=' + encodeURIComponent(q) + '&rows=50&select=DOI,title,container-title,published,published-print,published-online,author,type,volume,issue';
 
       /* CrossRef와 KCI를 동시에 부른다.
          차례로 부르면 기다리는 시간이 두 배가 되므로 한 번에 보낸다.
@@ -2240,8 +2240,8 @@ header {
      CrossRef는 published / published-print / published-online 중 있는 것을 주고,
      date-parts 는 [연] · [연,월] · [연,월,일] 처럼 길이가 제각각이라 채워서 맞춘다. */
   function paperDateKey(w) {
-    const parts = w.published?.['date-parts']
-               || w['published-print']?.['date-parts']
+    const parts = w['published-print']?.['date-parts']
+               || w.published?.['date-parts']
                || w['published-online']?.['date-parts'];
     const d = parts && parts[0];
     if (!d || !d[0]) return 0;
@@ -2333,7 +2333,11 @@ header {
       const t       = esc(stripTags((w.title && w.title[0]) || '제목 없음'));
       const journal = esc((w['container-title'] && w['container-title'][0]) || '');
       const doi     = esc(w.DOI || '');
-      const parts   = w.published?.['date-parts'] || w['published-print']?.['date-parts'] || w['published-online']?.['date-parts'];
+      /* 연도는 학술지 출판일자(published-print) 기준으로 보여준다.
+         CrossRef 의 published 는 온라인 선공개를 포함한 '가장 이른 날짜'라서
+         온라인 2024 · 정식 출판 2025 인 논문이 2024 로 나왔다(2026-09 수정).
+         상세 화면의 '학술지 출판일자' 와 같은 기준으로 맞춘 것이다. */
+      const parts   = w['published-print']?.['date-parts'] || w.published?.['date-parts'] || w['published-online']?.['date-parts'];
       const year    = (parts && parts[0] && parts[0][0]) ? parts[0][0] : '';
       const vol     = w.volume ? w.volume + '권' : '';
       const iss     = w.issue  ? w.issue + '호'  : '';
